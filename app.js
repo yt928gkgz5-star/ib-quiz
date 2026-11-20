@@ -43,7 +43,7 @@ const FRQ_INSTRUCTIONS = `<b>For each molecule, answer all seven parts:</b>
 const PREIB_FRQ_SETS = [
   {
     id: "preib-frq-polarity",
-    title: "Molecular Polarity (VSEPR & Polarity)",
+    title: "Chemical Bonding · Molecular Polarity (VSEPR & Polarity)",
     level: "Pre-IB", level2: "SL", paper: "FRQ", _src: ["preib-frq"],
     intro: FRQ_INSTRUCTIONS,
     questions: [
