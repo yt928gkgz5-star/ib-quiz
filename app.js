@@ -6,6 +6,7 @@ let state = { view: "home", chapter: null, name: "", answers: {}, page: 0, submi
 const LEVELS = ["Pre-IB", "SL", "HL"];
 const PAPERS = ["MCQ", "FRQ", "P1B"];
 const PREIB_PAPERS = ["MCQ", "FRQ"];
+if (typeof location !== "undefined" && location.hash === "#preib") state.browse.level = "Pre-IB";
 
 /* ---------- Pre-IB topics (merged from the SL MCQ bank) ---------- */
 const PREIB_TOPICS = [
@@ -320,7 +321,7 @@ function renderHome() {
     ${accBar}
     <div class="listhead">${level} · ${paper}${hasBank ? ` · ${total} questions` : ""}</div>
     ${cards}${emptyCard}
-    <div class="footnote">Every question keeps its original diagram or structure, so figures stay exact. Your score is shown immediately after submission, with the correct answer for each question.<br>Pre-IB students can also use the <a class="tlink" href="preib.html">simplified Pre-IB page</a>.<br><a class="tlink" href="teacher.html">Teacher view</a></div>
+    <div class="footnote">Every question keeps its original diagram or structure, so figures stay exact. Your score is shown immediately after submission, with the correct answer for each question.<br><a class="tlink" href="teacher.html">Teacher view</a></div>
   </main>`;
 }
 
