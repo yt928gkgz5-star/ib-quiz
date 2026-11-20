@@ -1,7 +1,8 @@
 /* IB Chemistry - topic practice platform (SL & HL, MCQ / P2 / Paper 1B) */
 const app = document.getElementById("app");
 const PAGE_SIZE = 8;
-let state = { view: "home", chapter: null, name: "", answers: {}, page: 0, submitted: false,
+const P2_PAGE_SIZE = 2;
+let state = { view: "home", chapter: null, name: "", answers: {}, marks: {}, page: 0, submitted: false, marking: false,
   browse: { level: "SL", paper: "MCQ" } };
 const LEVELS = ["Pre-IB", "SL", "HL"];
 const PAPERS = ["MCQ", "FRQ", "P1B"];
@@ -337,25 +338,59 @@ function setPaper(p) { state.browse.paper = p; if (state.view !== "home") state.
 function openChapter(i) {
   const ch = activeChapters()[i];
   if (!isAllowed(ch)) { lockedClick(); return; }
-  state = { view: "quiz", chapter: i, name: localStorage.getItem("stuName") || "", answers: {}, page: 0, submitted: false,
+  state = { view: "quiz", chapter: i, name: localStorage.getItem("stuName") || "", answers: {}, marks: {}, page: 0, submitted: false, marking: false,
     browse: state.browse, frqResults: null, reviewDate: null };
-  if (ch.paper === "FRQ") {
-    let saved = null;
-    try { saved = JSON.parse(localStorage.getItem("attempt:" + ch.id) || "null"); } catch (e) {}
-    if (saved && saved.kind === "frq") {
-      state.answers = saved.answers || {};
-      state.frqResults = saved.results || ch.questions.map((q, qi) => gradeFRQ(q, state.answers[qi]));
-      state.submitted = true;
-      state.reviewDate = saved.date || "";
-    }
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem("attempt:" + ch.id) || "null"); } catch (e) {}
+  if (ch.paper === "FRQ" && saved && saved.kind === "frq") {
+    state.answers = saved.answers || {};
+    state.frqResults = saved.results || ch.questions.map((q, qi) => gradeFRQ(q, state.answers[qi]));
+    state.submitted = true;
+    state.reviewDate = saved.date || "";
+  }
+  if (ch.paper === "P2" && saved && saved.kind === "p2") {
+    state.answers = saved.answers || {};
+    state.marks = saved.marks || {};
+    state.submitted = true;
+    state.reviewDate = saved.date || "";
   }
   render(); window.scrollTo(0, 0);
 }
 
 function reviewAttempt() { state.view = "quiz"; render(); window.scrollTo(0, 0); }
 function startFresh() {
-  state.answers = {}; state.frqResults = null; state.submitted = false; state.reviewDate = null; state.page = 0;
+  state.answers = {}; state.marks = {}; state.frqResults = null; state.submitted = false; state.marking = false; state.reviewDate = null; state.page = 0;
   render(); window.scrollTo(0, 0);
+}
+
+/* ---------- Paper 2 (structured questions + mark scheme self-marking) ---------- */
+function p2QuestionHTML(q, qi) {
+  const writing = !state.submitted && !state.marking;
+  if (writing) {
+    return `<article class="q p2">
+      <div class="qtop"><span class="qidx">${qi + 1}</span><span class="qsrc">${srcLabel(q.src)}</span></div>
+      <img class="qimg" src="${q.img}" alt="Question ${qi + 1}" loading="lazy">
+      <textarea class="frqbox" data-q="${qi}" oninput="typeAns(this)" placeholder="Type your key answers here (optional — you can also work on paper)...">${escHTML(state.answers[qi] || "")}</textarea>
+    </article>`;
+  }
+  const given = String(state.answers[qi] || "").trim();
+  const m = state.marks[qi];
+  const scoreCtl = state.marking
+    ? `<div class="markrow">
+         <label>My mark for this question:</label>
+         <input type="number" class="mkin" min="0" step="1" value="${m ? m.g : 0}" data-q="${qi}" data-k="g" oninput="markInput(this)"> /
+         <input type="number" class="mkin" min="0" step="1" placeholder="total" value="${m ? m.t : ""}" data-q="${qi}" data-k="t" oninput="markInput(this)">
+       </div>`
+    : `<div class="frqscore ${m && m.g === m.t ? "full" : !m || m.g === 0 ? "zero" : ""}">${m ? m.g + " / " + m.t : "not marked"}</div>`;
+  return `<article class="q p2 graded">
+    <div class="qtop"><span class="qidx">${qi + 1}</span><span class="qsrc">${srcLabel(q.src)}</span></div>
+    <img class="qimg" src="${q.img}" alt="Question ${qi + 1}" loading="lazy">
+    <div class="frqgiven"><div class="frqlabel">Your notes / answers</div>
+      <div class="frqtext${given ? "" : " empty"}">${given ? escHTML(given).replace(/\n/g, "<br>") : "<i>Worked on paper</i>"}</div></div>
+    <div class="msblock"><div class="frqlabel">Official mark scheme — check each marking point, then enter your mark above</div>
+      <img class="qimg msimg" src="${q.ms}" alt="Mark scheme ${qi + 1}" loading="lazy"></div>
+    ${scoreCtl}
+  </article>`;
 }
 
 function frqQuestionHTML(q, qi) {
@@ -385,18 +420,22 @@ function renderQuiz() {
   const ch = activeChapters()[state.chapter];
   if (!ch) { state.view = "home"; renderHome(); return; }
   const isFRQ = ch.paper === "FRQ";
+  const isP2 = ch.paper === "P2";
   const total = ch.questions.length;
-  const size = isFRQ ? 5 : PAGE_SIZE;
+  const size = isFRQ ? 5 : isP2 ? P2_PAGE_SIZE : PAGE_SIZE;
   const pages = Math.ceil(total / size);
   const start = state.page * size;
   const slice = ch.questions.slice(start, start + size);
-  const answered = isFRQ
+  const answered = isP2
     ? ch.questions.filter((q, qi) => String(state.answers[qi] || "").trim()).length
-    : Object.keys(state.answers).length;
+    : isFRQ
+      ? ch.questions.filter((q, qi) => String(state.answers[qi] || "").trim()).length
+      : Object.keys(state.answers).length;
 
   const qs = slice.map((q, k) => {
     const qi = start + k;
     if (isFRQ) return frqQuestionHTML(q, qi);
+    if (isP2) return p2QuestionHTML(q, qi);
     const picked = state.answers[qi];
     const opts = ["A", "B", "C", "D"].map((L, oi) => {
       let cls = "";
@@ -422,15 +461,17 @@ function renderQuiz() {
       <button class="ghost" onclick="goPage(${state.page + 1})" ${state.page === pages - 1 ? "disabled" : ""}>Next</button>
     </div>` : "";
 
-  const reviewBar = isFRQ && state.submitted && state.reviewDate
+  const reviewBar = (isFRQ || isP2) && state.submitted && state.reviewDate
     ? `<div class="reviewbar">Reviewing your attempt from <b>${state.reviewDate}</b> · <a class="tlink" onclick="startFresh()">start a fresh attempt</a></div>` : "";
   const introBar = isFRQ && !state.submitted ? `<div class="q frqintro">${ch.intro || ""}</div>` : "";
+  const p2bar = isP2 && state.marking && !state.submitted
+    ? `<div class="reviewbar" style="background:#EAF3EA;border-color:#BBD8BB">Compare your answer with the <b>official mark scheme</b> under each question, then enter the mark you earned (and the question total) in the boxes. When every question is marked, click <b>Save my marks</b>.</div>` : "";
 
   app.innerHTML = `
   <header class="site small"><div class="inner">
     <div class="back" onclick="goHome()">← All chapters</div>
     <h1>${ch.title}</h1>
-    <p>${isFRQ ? total + " free-response questions · auto-marked" : total + " questions"} · ${ch.level}</p>
+    <p>${isFRQ ? total + " free-response questions · auto-marked" : isP2 ? total + " structured questions · mark-scheme self-marking" : total + " questions"} · ${ch.level}</p>
   </div></header>
   <main class="wrap">
     ${state.submitted ? "" : `<div class="namebar">
@@ -441,16 +482,21 @@ function renderQuiz() {
     <div class="progress"><div class="progress-bar"><i id="progBar" style="width:${Math.round(100 * answered / total)}%"></i></div>
       <span id="progText">${answered} / ${total} answered</span></div>
     ${introBar}
+    ${p2bar}
     ${qs}
     ${pager}
     <div class="submitbar">
       ${state.submitted
         ? `<button onclick="finish()">See my score</button>`
-        : `<button onclick="submitQuiz()">Submit and mark</button>`}
+        : isP2 && state.marking
+          ? `<button onclick="saveMarks()">Save my marks</button>`
+          : `<button onclick="submitQuiz()">Submit and mark</button>`}
     </div>
     ${state.submitted ? "" : `<div class="footnote">${isFRQ
       ? "Write your answers in full sentences. Marks are awarded per marking point — partial credit is given automatically, and the model answer appears after you submit."
-      : "Answer as many as you can, then submit. Correct answers appear with each question."}</div>`}
+      : isP2
+        ? "Answer the questions (type key results here, or work on paper). After submitting, the official mark scheme appears under each question so you can mark yourself, just like an examiner would."
+        : "Answer as many as you can, then submit. Correct answers appear with each question."}</div>`}
   </main>`;
 }
 
@@ -505,7 +551,7 @@ function pick(btn) {
 
 function goPage(p) {
   const ch = activeChapters()[state.chapter];
-  const size = ch.paper === "FRQ" ? 5 : PAGE_SIZE;
+  const size = ch.paper === "FRQ" ? 5 : ch.paper === "P2" ? P2_PAGE_SIZE : PAGE_SIZE;
   const total = ch.questions.length;
   const pages = Math.ceil(total / size);
   if (p < 0 || p >= pages) return;
@@ -534,15 +580,46 @@ function submitQuiz() {
   localStorage.setItem("stuName", state.name);
   const ch = activeChapters()[state.chapter];
   const isFRQ = ch.paper === "FRQ";
+  const isP2 = ch.paper === "P2";
   const total = ch.questions.length;
-  const answered = isFRQ
+  const answered = (isFRQ || isP2)
     ? ch.questions.filter((q, qi) => String(state.answers[qi] || "").trim()).length
     : Object.keys(state.answers).length;
   const unanswered = total - answered;
   if (unanswered > 0 && !confirm(unanswered + " question(s) still unanswered. Submit anyway?")) return;
   if (isFRQ) state.frqResults = ch.questions.map((q, qi) => gradeFRQ(q, state.answers[qi]));
+  if (isP2) { state.marking = true; render(); window.scrollTo(0, 0); return; }
   state.submitted = true;
   render(); window.scrollTo(0, 0);
+}
+
+function markInput(el) {
+  const qi = +el.dataset.q;
+  const m = state.marks[qi] || { g: 0, t: 0 };
+  m[el.dataset.k] = parseInt(el.value, 10) || 0;
+  state.marks[qi] = m;
+}
+
+function saveMarks() {
+  const ch = activeChapters()[state.chapter];
+  const marks = {};
+  for (let qi = 0; qi < ch.questions.length; qi++) {
+    const m = state.marks[qi];
+    if (!m) continue;
+    if (m.t < 1 || m.g < 0 || m.g > m.t) {
+      alert("Question " + (qi + 1) + ": please enter a total of at least 1, with your mark between 0 and the total.");
+      return;
+    }
+    marks[qi] = m;
+  }
+  if (Object.keys(marks).length === 0) {
+    alert("Please enter your mark and the question total under each question first.");
+    return;
+  }
+  state.marks = marks;
+  state.marking = false;
+  state.submitted = true;
+  finish();
 }
 
 function score() {
@@ -550,6 +627,14 @@ function score() {
   if (ch.paper === "FRQ") {
     const s = (state.frqResults || []).reduce((a, r) => a + r.s, 0);
     const t = ch.questions.reduce((a, q) => a + (q.marks || 0), 0);
+    return { s, t };
+  }
+  if (ch.paper === "P2") {
+    let s = 0, t = 0;
+    ch.questions.forEach((q, qi) => {
+      const m = state.marks[qi];
+      if (m) { s += m.g; t += m.t; }
+    });
     return { s, t };
   }
   let s = 0;
@@ -560,12 +645,19 @@ function score() {
 function finish() {
   const ch = activeChapters()[state.chapter];
   const isFRQ = ch.paper === "FRQ";
+  const isP2 = ch.paper === "P2";
   const { s, t } = score();
+  if (!t) { alert("No marks recorded yet."); return; }
   const pct = Math.round(100 * s / t);
   const grid = ch.questions.map((q, qi) => {
     if (isFRQ) {
       const r = (state.frqResults && state.frqResults[qi]) || { s: 0 };
       return `<span class="cell ${r.s === q.marks ? "ok" : r.s === 0 ? "no" : "half"}" title="Q${qi + 1}: ${r.s}/${q.marks}">${qi + 1}</span>`;
+    }
+    if (isP2) {
+      const m = state.marks[qi] || { g: 0, t: 0 };
+      const ratio = m.t ? m.g / m.t : 0;
+      return `<span class="cell ${m.t && m.g === m.t ? "ok" : ratio < 0.5 ? "no" : "half"}" title="Q${qi + 1}: ${m.g}/${m.t}">${qi + 1}</span>`;
     }
     const ok = state.answers[qi] === q.answer;
     const given = state.answers[qi] !== undefined ? "ABCD"[state.answers[qi]] : "–";
@@ -575,13 +667,17 @@ function finish() {
     n: state.name, c: ch.title, s: `${s}/${t}`,
     a: isFRQ
       ? ch.questions.map((q, qi) => ((state.frqResults && state.frqResults[qi]) || { s: 0 }).s).join("-")
-      : ch.questions.map((q, qi) => state.answers[qi] !== undefined ? "ABCD"[state.answers[qi]] : "-").join(""),
+      : isP2
+        ? ch.questions.map((q, qi) => { const m = state.marks[qi]; return m ? m.g + "/" + m.t : "0/0"; }).join("-")
+        : ch.questions.map((q, qi) => state.answers[qi] !== undefined ? "ABCD"[state.answers[qi]] : "-").join(""),
     d: new Date().toISOString().slice(0, 16).replace("T", " ")
   };
   const code = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
   localStorage.setItem("attempt:" + ch.id, JSON.stringify(isFRQ
     ? { score: s, total: t, date: payload.d, kind: "frq", answers: state.answers, results: state.frqResults }
-    : { score: s, total: t, date: payload.d }));
+    : isP2
+      ? { score: s, total: t, date: payload.d, kind: "p2", answers: state.answers, marks: state.marks }
+      : { score: s, total: t, date: payload.d }));
 
   app.innerHTML = `
   <header class="site small"><div class="inner">
@@ -594,7 +690,7 @@ function finish() {
       <div class="who">${state.name} · ${ch.title}</div>
       <div class="progress-bar big"><i style="width:${pct}%"></i></div>
       <div class="grid">${grid}</div>
-      <div class="legend"><span class="key ok"></span>${isFRQ ? "full marks" : "correct"} <span class="key no"></span>${isFRQ ? "no marks" : "incorrect"}</div>
+      <div class="legend"><span class="key ok"></span>${isFRQ || isP2 ? "full marks" : "correct"} <span class="key no"></span>${isFRQ || isP2 ? "no marks" : "incorrect"}</div>
     </section>
     <section class="card">
       <div class="listhead">Score report for your teacher</div>
