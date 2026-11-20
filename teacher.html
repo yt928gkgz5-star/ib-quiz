@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher · score collection</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.ta { width: 100%; min-height: 150px; font-family: Menlo, Consolas, monospace; font-size: 12px;
+  border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #FBFCFE; line-height: 1.7; }
+.ta:focus { outline: none; border-color: var(--navy-soft); box-shadow: 0 0 0 3px #E6EFF9; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+  color: var(--muted); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+td { padding: 9px 10px; border-bottom: 1px solid #EEF2F7; }
+td.num { font-variant-numeric: tabular-nums; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.err { color: var(--no); font-size: 12px; margin-top: 10px; }
+.stat { display: flex; gap: 18px; margin-top: 6px; font-size: 12px; color: var(--muted); }
+.stat b { color: var(--navy-deep); font-size: 18px; font-weight: 600; display: block; }
+</style>
+</head>
+<body>
+<header class="site small"><div class="inner">
+  <div class="back" onclick="location.href='index.html'">← Student site</div>
+  <h1>Teacher view</h1>
+  <p>Generate class access codes so only the right class can open a chapter — then collect score codes and export a CSV for ManageBac.</p>
+</div></header>
+<main class="wrap">
+  <section class="card">
+    <div class="listhead">1 · Class access code</div>
+    <div class="row" style="margin-top:4px">
+      <input type="text" id="clsName" placeholder="Class name, e.g. DP2A" style="flex:1">
+    </div>
+    <div id="chList" style="margin-top:12px"></div>
+    <div class="row">
+      <button onclick="genCode(false)">Generate code for selected chapters</button>
+      <button class="ghost" onclick="genCode(true)">Full access code</button>
+    </div>
+    <div class="err" id="genErr"></div>
+    <div id="genOut" style="display:none">
+      <div class="listhead" style="margin-top:14px">Give this code to the class</div>
+      <div class="codebox" id="genBox"></div>
+      <div class="row"><button onclick="copyGen(this)">Copy code</button></div>
+    </div>
+  </section>
+  <section class="card">
+    <div class="listhead">2 · Class roster</div>
+    <p class="footnote" style="margin-top:4px">Rosters were exported from ManageBac (51 students in 5 classes, G9 excluded). Pick a class — the student list loads automatically and is saved in this browser.</p>
+    <div class="row" style="margin-top:8px">
+      <select id="clsSel" style="flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff">
+        <option value="">— select a class —</option>
+      </select>
+      <span class="acc-status" id="clsInfo" style="align-self:center"></span>
+    </div>
+    <details style="margin-top:10px">
+      <summary style="font-size:12.5px; color:var(--navy-soft); cursor:pointer">Edit roster manually (Name, email — one per line)</summary>
+      <textarea class="ta" id="roster" style="min-height:100px; margin-top:8px" placeholder="刘思涵 Alex, 19983174572@163.com&#10;姚克 Yake, yk18108162992@163.com"></textarea>
+    </details>
+  </section>
+  <section class="card">
+    <div class="listhead">3 · Score collection</div>
+    <textarea class="ta" id="codes" placeholder="Student score codes, one per line..."></textarea>
+    <div class="row">
+      <button onclick="parseCodes()">Read codes</button>
+      <button class="ghost" onclick="downloadCSV()">Download CSV for ManageBac</button>
+      <button class="ghost" onclick="clearAll()">Clear</button>
+    </div>
+    <div class="err" id="err"></div>
+  </section>
+  <section class="card" id="summary" style="display:none">
+    <div class="listhead">Attempts</div>
+    <div class="stat" id="stat"></div>
+    <table id="tbl"><thead><tr>
+      <th>Student</th><th>Chapter</th><th>Score</th><th>%</th><th>Submitted</th>
+    </tr></thead><tbody></tbody></table>
+  </section>
+  <section class="card" id="mbCard" style="display:none">
+    <div class="listhead">3 · ManageBac entry column</div>
+    <p class="footnote" style="margin-top:4px">This ManageBac version has <b>no CSV import</b> — grades are typed straight into the gradebook grid (auto-saved). The column below is already sorted in ManageBac row order, so you can go down the list cell by cell.</p>
+    <div class="row">
+      <select id="taskSel" style="padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff"></select>
+      <select id="valMode" style="padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff">
+        <option value="score">Raw score (e.g. 15)</option>
+        <option value="pct">Percentage (e.g. 88)</option>
+      </select>
+      <button onclick="copyColumn(this)">Copy column</button>
+      <button class="ghost" onclick="downloadCSV()">Download CSV (backup)</button>
+    </div>
+    <table id="mbTbl"><thead><tr><th>#</th><th>Student</th><th>Score</th><th>Status</th></tr></thead><tbody></tbody></table>
+    <textarea class="ta" id="colBox" style="min-height:120px; margin-top:10px" readonly></textarea>
+  </section>
+</main>
+<script src="data.js"></script>
+<script src="roster-data.js"></script>
+<script>
+let rows = [];
+const CH = {};
+
+/* ---- access code generator (same scheme as app.js) ---- */
+function hash6(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+function b64urlEnc(s) {
+  return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function buildChapterList() {
+  const box = document.getElementById("chList");
+  const byKey = {};
+  QUIZ_DATA.chapters.forEach(ch => {
+    const key = (ch.level2 || "SL") + " · " + (ch.paper || "MCQ");
+    (byKey[key] = byKey[key] || []).push(ch);
+  });
+  box.innerHTML = Object.keys(byKey).map(key => `
+    <div class="grp">
+      <div class="grp-h">${key}</div>
+      ${byKey[key].map(ch => `
+        <label class="ck"><input type="checkbox" value="${ch.id}"> ${ch.title} <span class="cnt">(${ch.questions.length} Q)</span></label>`).join("")}
+    </div>`).join("");
+}
+function genCode(full) {
+  const cls = document.getElementById("clsName").value.trim();
+  const err = document.getElementById("genErr");
+  const out = document.getElementById("genOut");
+  err.textContent = "";
+  if (!cls) { err.textContent = "Please enter a class name first."; return; }
+  let allow;
+  if (full) {
+    allow = ["*"];
+  } else {
+    allow = [...document.querySelectorAll("#chList input:checked")].map(cb => cb.value);
+    if (!allow.length) { err.textContent = "Tick at least one chapter for this class."; return; }
+  }
+  const code = "IBQ." + b64urlEnc(JSON.stringify({ c: cls, a: allow })) + "." + hash6(JSON.stringify({ c: cls, a: allow }));
+  document.getElementById("genBox").textContent = code;
+  out.style.display = "block";
+}
+function copyGen(btn) {
+  const text = document.getElementById("genBox").textContent.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = "Copied";
+    setTimeout(() => (btn.textContent = "Copy code"), 1500);
+  });
+}
+buildChapterList();
+
+function decode(code) {
+  const txt = atob(code.trim());
+  const obj = JSON.parse(decodeURIComponent(escape(txt)));
+  const m = /^(\d+)\/(\d+)$/.exec(obj.s || "");
+  if (!m) throw new Error("bad score");
+  return { name: obj.n, chapter: obj.c, score: +m[1], total: +m[2], date: obj.d || "" };
+}
+
+function parseCodes() {
+  const raw = document.getElementById("codes").value.split(/[\n\r]+/).map(s => s.trim()).filter(Boolean);
+  const errEl = document.getElementById("err");
+  rows = [];
+  const bad = [];
+  raw.forEach(c => { try { rows.push(decode(c)); } catch (e) { bad.push(c.slice(0, 18)); } });
+  rows.sort((a, b) => a.name.localeCompare(b.name));
+  errEl.textContent = bad.length ? `${bad.length} code(s) could not be read: ${bad.join(", ")}` : "";
+  renderSummary();
+}
+
+function renderSummary() {
+  const box = document.getElementById("summary");
+  const tb = document.querySelector("#tbl tbody");
+  if (!rows.length) { box.style.display = "none"; return; }
+  box.style.display = "block";
+  const pct = rows.map(r => r.score / r.total);
+  const avg = Math.round(100 * pct.reduce((a, b) => a + b, 0) / pct.length);
+  document.getElementById("stat").innerHTML =
+    `<div><b>${rows.length}</b>attempts</div>
+     <div><b>${new Set(rows.map(r => r.name)).size}</b>students</div>
+     <div><b>${avg}%</b>average</div>`;
+  tb.innerHTML = rows.map(r => `<tr>
+    <td>${esc(r.name)}</td><td>${esc(r.chapter)}</td>
+    <td class="num">${r.score}/${r.total}</td>
+    <td class="num">${Math.round(100 * r.score / r.total)}%</td>
+    <td>${esc(r.date)}</td></tr>`).join("");
+  renderMbCard();
+}
+
+/* ---- ManageBac entry column ---- */
+const taskSel = document.getElementById("taskSel");
+const valSel = document.getElementById("valMode");
+
+function renderMbCard() {
+  const card = document.getElementById("mbCard");
+  if (!rows.length) { card.style.display = "none"; return; }
+  card.style.display = "block";
+  const chapters = [...new Set(rows.map(r => r.chapter))];
+  const keep = taskSel.value;
+  taskSel.innerHTML = chapters.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  if (chapters.includes(keep)) taskSel.value = keep;
+  buildColumn();
+}
+
+function buildColumn() {
+  const c = currentClass();
+  const chap = taskSel.value;
+  const mode = valSel ? valSel.value : "score";
+  const tb = document.querySelector("#mbTbl tbody");
+  const box = document.getElementById("colBox");
+  if (!c) {
+    tb.innerHTML = `<tr><td colspan="4" class="err">Pick a class in section 2 first.</td></tr>`;
+    box.value = "";
+    return;
+  }
+  const mine = rows.filter(r => r.chapter === chap);
+  const used = new Set();
+  const lines = [], trs = [];
+  c.students.forEach((s, i) => {
+    const hit = mine.find(r => { const m = matchStudent(r.name); return m && m.n === s.n && m.en === s.en; });
+    let val = "", status = "—";
+    if (hit) {
+      used.add(hit);
+      val = mode === "pct" ? Math.round(100 * hit.score / hit.total) : hit.score;
+      status = `<span style="color:#1B7F4B">✓ ${hit.score}/${hit.total}</span>`;
+    } else {
+      status = `<span style="color:var(--muted)">no submission</span>`;
+    }
+    lines.push(String(val));
+    trs.push(`<tr><td class="num">${i + 1}</td><td>${esc(s.n + " " + s.en)}</td><td class="num">${val === "" ? "" : val}</td><td>${status}</td></tr>`);
+  });
+  const leftovers = mine.filter(r => !used.has(r)).map(r => r.name);
+  if (leftovers.length) trs.push(`<tr><td colspan="4" class="err">Names not matched to this class: ${esc([...new Set(leftovers)].join(", "))}</td></tr>`);
+  tb.innerHTML = trs.join("");
+  box.value = lines.join("\n");
+}
+
+function copyColumn(btn) {
+  const text = document.getElementById("colBox").value;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = "Copied";
+    setTimeout(() => (btn.textContent = "Copy column"), 1500);
+  });
+}
+taskSel.addEventListener("change", buildColumn);
+if (valSel) valSel.addEventListener("change", buildColumn);
+
+function esc(s) { return String(s).replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c])); }
+
+/* ---- roster: name -> email, persisted in localStorage ---- */
+const rosterEl = document.getElementById("roster");
+rosterEl.value = localStorage.getItem("roster") || "";
+rosterEl.addEventListener("input", () => localStorage.setItem("roster", rosterEl.value));
+function emailFor(name) {
+  const norm = s => String(s || "").trim().toLowerCase().replace(/\s+/g, "");
+  const target = norm(name);
+  for (const line of rosterEl.value.split(/[\n\r]+/)) {
+    const idx = line.lastIndexOf(",");
+    if (idx < 1) continue;
+    const nm = norm(line.slice(0, idx)), em = line.slice(idx + 1).trim();
+    if (nm && em && (nm === target || nm.includes(target) || target.includes(nm))) return em;
+  }
+  return "";
+}
+
+/* ---- ManageBac class rosters ---- */
+const clsSel = document.getElementById("clsSel");
+(function initClasses() {
+  if (typeof MB_CLASSES === "undefined") return;
+  MB_CLASSES.forEach((c, i) => {
+    const o = document.createElement("option");
+    o.value = String(i); o.textContent = `${c.name} · ${c.students.length} students`;
+    clsSel.appendChild(o);
+  });
+  const saved = localStorage.getItem("mbClass");
+  if (saved && MB_CLASSES[+saved]) { clsSel.value = saved; loadClass(); }
+})();
+
+function currentClass() {
+  return (typeof MB_CLASSES !== "undefined" && clsSel.value !== "") ? MB_CLASSES[+clsSel.value] : null;
+}
+
+function loadClass() {
+  const c = currentClass();
+  if (!c) return;
+  localStorage.setItem("mbClass", clsSel.value);
+  rosterEl.value = c.students.map(s => `${s.n} ${s.en}, ${s.email}`).join("\n");
+  localStorage.setItem("roster", rosterEl.value);
+  document.getElementById("clsInfo").textContent = `${c.students.length} students · ManageBac class ${c.mbId}`;
+  const nameBox = document.getElementById("clsName");
+  if (nameBox && !nameBox.value.trim()) nameBox.value = c.name;
+  if (rows.length) renderSummary();
+}
+clsSel.addEventListener("change", loadClass);
+
+/* match a quiz name against the selected class roster */
+function matchStudent(name) {
+  const c = currentClass();
+  const norm = s => String(s || "").toLowerCase().replace(/[\s,·._-]/g, "");
+  const t = norm(name);
+  if (!t) return null;
+  const pool = c ? c.students : [];
+  const t0 = t.replace(/^(preib|11ib|12ib)/, ""); // strip class prefix, e.g. "12ib alex" -> "alex"
+  let hit = pool.find(s => norm(s.en) === t0 || norm(s.n) === t0 ||
+    norm(s.n + s.en) === t0 || norm(s.en + s.n) === t0 || norm(s.en) === t || norm(s.n) === t);
+  if (!hit) hit = pool.find(s => { const a = norm(s.n), b = norm(s.en); return (a && t.includes(a)) || (b && t.includes(b)); });
+  if (!hit && c) {
+    // fall back to global search, but flag it
+    for (const other of MB_CLASSES) {
+      const m = other.students.find(s => { const a = norm(s.n), b = norm(s.en); return (a && t.includes(a)) || (b && t.includes(b)); });
+      if (m) return { ...m, otherClass: other.name };
+    }
+  }
+  return hit || null;
+}
+
+function downloadCSV() {
+  if (!rows.length) { parseCodes(); if (!rows.length) return; }
+  const missing = rows.filter(r => !emailFor(r.name)).map(r => r.name);
+  if (missing.length && !confirm(`${missing.length} student(s) have no email in the roster: ${missing.join(", ")}. Export anyway?`)) return;
+  const head = ["Student", "Student email", "Task", "Points", "Max points", "Percentage", "Date"];
+  const lines = [head.join(",")];
+  rows.forEach(r => {
+    const cells = [r.name, emailFor(r.name), r.chapter, r.score, r.total,
+      (100 * r.score / r.total).toFixed(1), r.date];
+    lines.push(cells.map(c => `"${String(c).replace(/"/g, '""')}"`).join(","));
+  });
+  const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "ib-p1-scores-" + new Date().toISOString().slice(0, 10) + ".csv";
+  a.click();
+}
+
+function clearAll() {
+  document.getElementById("codes").value = "";
+  document.getElementById("err").textContent = "";
+  document.getElementById("summary").style.display = "none";
+  rows = [];
+}
+</script>
+</body>
+</html>
