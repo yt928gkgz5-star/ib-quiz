@@ -6652,6 +6652,21 @@ const QUIZ_DATA = {
   ]
  },
  {
+  "id": "hp2ch7",
+  "title": "Ch7 · Equilibrium",
+  "level": "HL · Paper 2 2017–2024",
+  "level2": "HL",
+  "paper": "P2",
+  "questions": [
+   {
+    "type": "p2",
+    "img": "img/hp2q/HL_Winter_2017_Q6.jpg",
+    "ms": "img/hp2ms/HL_Winter_2017_Q6.jpg",
+    "src": "HL_Winter_2017_Q6"
+   }
+  ]
+ },
+ {
   "id": "hch8",
   "title": "Ch8 · Acids & Bases",
   "level": "HL · Paper 1 MCQ 2017–2024",
@@ -6825,6 +6840,27 @@ const QUIZ_DATA = {
     "img": "img/hch8/028.jpg",
     "answer": 0,
     "src": "1_HL_Winter_2024_Q25"
+   }
+  ]
+ },
+ {
+  "id": "hp2ch8",
+  "title": "Ch8 · Acids & Bases",
+  "level": "HL · Paper 2 2017–2024",
+  "level2": "HL",
+  "paper": "P2",
+  "questions": [
+   {
+    "type": "p2",
+    "img": "img/hp2q/HL_Winter_2022_Q5.jpg",
+    "ms": "img/hp2ms/HL_Winter_2022_Q5.jpg",
+    "src": "HL_Winter_2022_Q5"
+   },
+   {
+    "type": "p2",
+    "img": "img/hp2q/HL_Winter_2024_Q5.jpg",
+    "ms": "img/hp2ms/HL_Winter_2024_Q5.jpg",
+    "src": "HL_Winter_2024_Q5"
    }
   ]
  },
@@ -7293,12 +7329,6 @@ const QUIZ_DATA = {
     "img": "img/hp2q/HL_Winter_2024_Q2.jpg",
     "ms": "img/hp2ms/HL_Winter_2024_Q2.jpg",
     "src": "HL_Winter_2024_Q2"
-   },
-   {
-    "type": "p2",
-    "img": "img/hp2q/HL_Winter_2024_Q5.jpg",
-    "ms": "img/hp2ms/HL_Winter_2024_Q5.jpg",
-    "src": "HL_Winter_2024_Q5"
    }
   ]
  },
@@ -9712,6 +9742,21 @@ const QUIZ_DATA = {
   ]
  },
  {
+  "id": "hp2ch17",
+  "title": "Ch17 · Equilibrium",
+  "level": "HL · Paper 2 2017–2024",
+  "level2": "HL",
+  "paper": "P2",
+  "questions": [
+   {
+    "type": "p2",
+    "img": "img/hp2q/HL_Summer_2021_Q8.jpg",
+    "ms": "",
+    "src": "HL_Summer_2021_Q8"
+   }
+  ]
+ },
+ {
   "id": "hch18",
   "title": "Ch18 · Acids & Bases (HL extension)",
   "level": "HL · Paper 1 MCQ 2017–2024",
@@ -10146,12 +10191,6 @@ const QUIZ_DATA = {
     "img": "img/hp2q/HL_Winter_2021_Q11.jpg",
     "ms": "img/hp2ms/HL_Winter_2021_Q11.jpg",
     "src": "HL_Winter_2021_Q11"
-   },
-   {
-    "type": "p2",
-    "img": "img/hp2q/HL_Winter_2022_Q5.jpg",
-    "ms": "img/hp2ms/HL_Winter_2022_Q5.jpg",
-    "src": "HL_Winter_2022_Q5"
    }
   ]
  },
@@ -11538,12 +11577,6 @@ const QUIZ_DATA = {
     "img": "img/hp2q/HL_Winter_2019_Q7.jpg",
     "ms": "",
     "src": "HL_Winter_2019_Q7"
-   },
-   {
-    "type": "p2",
-    "img": "img/hp2q/HL_Summer_2021_Q8.jpg",
-    "ms": "",
-    "src": "HL_Summer_2021_Q8"
    },
    {
     "type": "p2",
