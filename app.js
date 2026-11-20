@@ -3,8 +3,33 @@ const app = document.getElementById("app");
 const PAGE_SIZE = 8;
 let state = { view: "home", chapter: null, name: "", answers: {}, page: 0, submitted: false,
   browse: { level: "SL", paper: "MCQ" } };
-const LEVELS = ["SL", "HL"];
-const PAPERS = ["MCQ", "P2", "Paper 1B"];
+const LEVELS = ["Pre-IB", "SL", "HL"];
+const PAPERS = ["MCQ", "FRQ", "P1B"];
+const PREIB_PAPERS = ["MCQ", "FRQ"];
+
+/* ---------- Pre-IB topics (merged from the SL MCQ bank) ---------- */
+const PREIB_TOPICS = [
+  { id: "preib-stoich",   title: "Stoichiometry",     src: ["ch1"] },
+  { id: "preib-atoms",    title: "Atomic Structure",  src: ["ch2"] },
+  { id: "preib-periodic", title: "Periodic Trends",   src: ["ch3"] },
+  { id: "preib-bonding",  title: "Chemical Bonding",  src: ["ch4.1", "ch4.2", "ch4.3"] }
+];
+const PREIB_CH = PREIB_TOPICS.map(t => ({
+  id: t.id,
+  title: t.title,
+  level: "Pre-IB",
+  level2: "SL",
+  paper: "MCQ",
+  _src: t.src,
+  questions: t.src.flatMap(cid => {
+    const c = QUIZ_DATA.chapters.find(x => x.id === cid);
+    return c ? c.questions : [];
+  })
+}));
+
+function activeChapters() {
+  return state.browse.level === "Pre-IB" ? PREIB_CH : QUIZ_DATA.chapters;
+}
 
 /* ---------- access codes ---------- */
 function hash6(s) {
@@ -36,7 +61,9 @@ function getAccess() {
 function isAllowed(ch) {
   const a = getAccess();
   if (!a) return false;
-  return a.allow[0] === "*" || a.allow.indexOf(ch.id) > -1;
+  if (a.allow[0] === "*") return true;
+  if (ch._src) return ch._src.some(id => a.allow.indexOf(id) > -1);
+  return a.allow.indexOf(ch.id) > -1;
 }
 function applyCode() {
   const input = document.getElementById("accessInput");
@@ -80,9 +107,9 @@ function render() {
 
 function renderHome() {
   const { level, paper } = state.browse;
-  const all = QUIZ_DATA.chapters;
+  const all = activeChapters();
   const group = all.map((ch, i) => ({ ch, i }))
-    .filter(x => (x.ch.level2 || "SL") === level && (x.ch.paper || "MCQ") === paper);
+    .filter(x => (x.ch.level2 || "SL") === (level === "Pre-IB" ? "SL" : level) && (x.ch.paper || "MCQ") === paper);
   const total = group.reduce((s, x) => s + x.ch.questions.length, 0);
   const hasBank = group.length > 0;
   const acc = getAccess();
@@ -129,7 +156,7 @@ function renderHome() {
       </div>
     </div>`;
 
-  const paperTabs = PAPERS.map(p =>
+  const paperTabs = (level === "Pre-IB" ? PREIB_PAPERS : PAPERS).map(p =>
     `<button class="tab${p === paper ? " on" : ""}" onclick="setPaper('${p}')">${p}</button>`).join("");
   const levelTabs = LEVELS.map(l =>
     `<button class="pill${l === level ? " on" : ""}" onclick="setLevel('${l}')">${l}</button>`).join("");
@@ -146,16 +173,20 @@ function renderHome() {
     ${accBar}
     <div class="listhead">${level} · ${paper}${hasBank ? ` · ${total} questions` : ""}</div>
     ${cards}${emptyCard}
-    <div class="footnote">Every question keeps its original diagram or structure, so figures stay exact. Your score is shown immediately after submission, with the correct answer for each question.<br>Pre-IB students: use the <a class="tlink" href="preib.html">Pre-IB page</a> instead.<br><a class="tlink" href="teacher.html">Teacher view</a></div>
+    <div class="footnote">Every question keeps its original diagram or structure, so figures stay exact. Your score is shown immediately after submission, with the correct answer for each question.<br>Pre-IB students can also use the <a class="tlink" href="preib.html">simplified Pre-IB page</a>.<br><a class="tlink" href="teacher.html">Teacher view</a></div>
   </main>`;
 }
 
 function escHTML(s) { return String(s).replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c])); }
-function setLevel(l) { state.browse.level = l; render(); }
+function setLevel(l) {
+  state.browse.level = l;
+  if (l === "Pre-IB" && PREIB_PAPERS.indexOf(state.browse.paper) === -1) state.browse.paper = "MCQ";
+  render();
+}
 function setPaper(p) { state.browse.paper = p; render(); }
 
 function openChapter(i) {
-  const ch = QUIZ_DATA.chapters[i];
+  const ch = activeChapters()[i];
   if (!isAllowed(ch)) { lockedClick(); return; }
   state = { view: "quiz", chapter: i, name: localStorage.getItem("stuName") || "", answers: {}, page: 0, submitted: false,
     browse: state.browse };
@@ -163,7 +194,7 @@ function openChapter(i) {
 }
 
 function renderQuiz() {
-  const ch = QUIZ_DATA.chapters[state.chapter];
+  const ch = activeChapters()[state.chapter];
   const total = ch.questions.length;
   const pages = Math.ceil(total / PAGE_SIZE);
   const start = state.page * PAGE_SIZE;
@@ -263,7 +294,7 @@ function pick(btn) {
   state.answers[qi] = oi;
   btn.parentElement.querySelectorAll(".opt").forEach(b => b.classList.remove("sel"));
   btn.classList.add("sel");
-  const total = QUIZ_DATA.chapters[state.chapter].questions.length;
+  const total = activeChapters()[state.chapter].questions.length;
   const answered = Object.keys(state.answers).length;
   const bar = document.getElementById("progBar"), txt = document.getElementById("progText");
   if (bar) bar.style.width = Math.round(100 * answered / total) + "%";
@@ -271,7 +302,7 @@ function pick(btn) {
 }
 
 function goPage(p) {
-  const total = QUIZ_DATA.chapters[state.chapter].questions.length;
+  const total = activeChapters()[state.chapter].questions.length;
   const pages = Math.ceil(total / PAGE_SIZE);
   if (p < 0 || p >= pages) return;
   state.page = p;
@@ -286,7 +317,7 @@ function submitQuiz() {
   if (el) state.name = el.value.trim();
   if (!state.name) { alert("Please enter your name first."); el && el.focus(); return; }
   localStorage.setItem("stuName", state.name);
-  const total = QUIZ_DATA.chapters[state.chapter].questions.length;
+  const total = activeChapters()[state.chapter].questions.length;
   const unanswered = total - Object.keys(state.answers).length;
   if (unanswered > 0 && !confirm(unanswered + " question(s) still unanswered. Submit anyway?")) return;
   state.submitted = true;
@@ -294,14 +325,14 @@ function submitQuiz() {
 }
 
 function score() {
-  const ch = QUIZ_DATA.chapters[state.chapter];
+  const ch = activeChapters()[state.chapter];
   let s = 0;
   ch.questions.forEach((q, qi) => { if (state.answers[qi] === q.answer) s++; });
   return { s, t: ch.questions.length };
 }
 
 function finish() {
-  const ch = QUIZ_DATA.chapters[state.chapter];
+  const ch = activeChapters()[state.chapter];
   const { s, t } = score();
   const pct = Math.round(100 * s / t);
   const grid = ch.questions.map((q, qi) => {
