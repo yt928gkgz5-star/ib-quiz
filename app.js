@@ -7,6 +7,7 @@ let state = { view: "home", chapter: null, name: "", answers: {}, marks: {}, pag
 const LEVELS = ["Pre-IB", "SL", "HL"];
 const PAPERS = ["MCQ", "FRQ", "P1B"];
 const PREIB_PAPERS = ["MCQ", "FRQ"];
+const LEVEL_PAPERS = { "Pre-IB": ["MCQ", "FRQ"], "SL": ["MCQ", "P2", "P1B"], "HL": ["MCQ", "P2", "P1B"] };
 if (typeof location !== "undefined" && location.hash === "#preib") state.browse.level = "Pre-IB";
 
 /* ---------- Pre-IB topics (merged from the SL MCQ bank) ---------- */
@@ -305,7 +306,7 @@ function renderHome() {
       </div>
     </div>`;
 
-  const paperTabs = (level === "Pre-IB" ? PREIB_PAPERS : PAPERS).map(p =>
+  const paperTabs = (LEVEL_PAPERS[level] || PAPERS).map(p =>
     `<button class="tab${p === paper ? " on" : ""}" onclick="setPaper('${p}')">${p}</button>`).join("");
   const levelTabs = LEVELS.map(l =>
     `<button class="pill${l === level ? " on" : ""}" onclick="setLevel('${l}')">${l}</button>`).join("");
@@ -329,7 +330,8 @@ function renderHome() {
 function escHTML(s) { return String(s).replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c])); }
 function setLevel(l) {
   state.browse.level = l;
-  if (l === "Pre-IB" && PREIB_PAPERS.indexOf(state.browse.paper) === -1) state.browse.paper = "MCQ";
+  const papers = LEVEL_PAPERS[l] || PAPERS;
+  if (papers.indexOf(state.browse.paper) === -1) state.browse.paper = "MCQ";
   if (state.view !== "home") state.view = "home";
   render();
 }
@@ -388,7 +390,9 @@ function p2QuestionHTML(q, qi) {
     <div class="frqgiven"><div class="frqlabel">Your notes / answers</div>
       <div class="frqtext${given ? "" : " empty"}">${given ? escHTML(given).replace(/\n/g, "<br>") : "<i>Worked on paper</i>"}</div></div>
     <div class="msblock"><div class="frqlabel">Official mark scheme — check each marking point, then enter your mark above</div>
-      <img class="qimg msimg" src="${q.ms}" alt="Mark scheme ${qi + 1}" loading="lazy"></div>
+      ${q.ms
+        ? `<img class="qimg msimg" src="${q.ms}" alt="Mark scheme ${qi + 1}" loading="lazy">`
+        : `<div class="msmissing">Official mark scheme not available for this question yet — use the mark totals printed on the question paper, or ask your teacher.</div>`}</div>
     ${scoreCtl}
   </article>`;
 }
