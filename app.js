@@ -181,6 +181,25 @@ function activeChapters() {
   return state.browse.paper === "FRQ" ? PREIB_FRQ_CH : PREIB_CH;
 }
 
+/* ---------- cloud reporting (Tencent CloudBase, optional) ---------- */
+/* If cloud-config.js has an env id, every finished attempt is stored in the
+   "attempts" collection so the teacher can see results without score codes. */
+let _tcbApp = null;
+async function tcbReady() {
+  if (typeof TCB_ENV === "undefined" || !TCB_ENV || typeof tcb === "undefined") return null;
+  if (!_tcbApp) {
+    _tcbApp = tcb.init({ env: TCB_ENV });
+    const auth = _tcbApp.auth({ persistence: "local" });
+    if (!(await auth.getLoginState())) await auth.anonymousAuthProvider().signIn();
+  }
+  return _tcbApp;
+}
+function cloudReport(data) {
+  tcbReady()
+    .then(app => app && app.database().collection("attempts").add(data))
+    .catch(err => console.warn("cloud report skipped:", err && err.message || err));
+}
+
 /* ---------- access codes ---------- */
 function hash6(s) {
   let h = 5381;
@@ -682,6 +701,11 @@ function finish() {
     : isP2
       ? { score: s, total: t, date: payload.d, kind: "p2", answers: state.answers, marks: state.marks }
       : { score: s, total: t, date: payload.d }));
+  cloudReport({
+    n: payload.n, cls: (getAccess() || {}).cls || "", ch: ch.id, title: ch.title,
+    level: ch.level2 || "", paper: ch.paper || "MCQ",
+    s: s, t: t, detail: payload.a, date: payload.d
+  });
 
   app.innerHTML = `
   <header class="site small"><div class="inner">

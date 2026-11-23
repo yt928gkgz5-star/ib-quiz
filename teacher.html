@@ -90,7 +90,21 @@ td.num { font-variant-numeric: tabular-nums; }
     <table id="mbTbl"><thead><tr><th>#</th><th>Student</th><th>Score</th><th>Status</th></tr></thead><tbody></tbody></table>
     <textarea class="ta" id="colBox" style="min-height:120px; margin-top:10px" readonly></textarea>
   </section>
+  <section class="card" id="cloudCard">
+    <div class="listhead">4 · Cloud results (auto-reported)</div>
+    <p class="footnote" style="margin-top:4px">Every finished attempt on the student site is reported here automatically — no score codes needed. For each student + chapter only the <b>latest</b> submission is kept.</p>
+    <div class="row">
+      <select id="cloudCls" style="min-width:180px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff">
+        <option value="">All classes</option>
+      </select>
+      <button onclick="loadCloud(this)">Load cloud results</button>
+      <span class="acc-status" id="cloudStat"></span>
+    </div>
+    <div class="err" id="cloudErr"></div>
+  </section>
 </main>
+<script src="tcb.js"></script>
+<script src="cloud-config.js"></script>
 <script src="data.js"></script>
 <script src="roster-data.js"></script>
 <script>
@@ -335,6 +349,72 @@ function clearAll() {
   document.getElementById("summary").style.display = "none";
   rows = [];
 }
+
+/* ---- section 4: cloud results (CloudBase "attempts" collection) ---- */
+let _tcbApp = null;
+async function tcbReady() {
+  if (typeof TCB_ENV === "undefined" || !TCB_ENV || typeof tcb === "undefined")
+    throw new Error("Cloud env id is not configured yet (cloud-config.js).");
+  if (!_tcbApp) {
+    _tcbApp = tcb.init({ env: TCB_ENV });
+    const auth = _tcbApp.auth({ persistence: "local" });
+    if (!(await auth.getLoginState())) await auth.anonymousAuthProvider().signIn();
+  }
+  return _tcbApp;
+}
+
+async function loadCloud(btn) {
+  const errEl = document.getElementById("cloudErr");
+  const statEl = document.getElementById("cloudStat");
+  errEl.textContent = "";
+  btn.disabled = true; btn.textContent = "Loading…";
+  try {
+    const app = await tcbReady();
+    const db = app.database();
+    let docs = [], skip = 0;
+    while (true) {
+      const res = await db.collection("attempts").orderBy("date", "desc").skip(skip).limit(100).get();
+      const part = res.data || [];
+      docs = docs.concat(part);
+      if (part.length < 100 || skip >= 2000) break;
+      skip += 100;
+    }
+    // keep only the latest attempt per student + chapter
+    const best = {};
+    docs.forEach(d => {
+      const key = (d.n || "") + "||" + (d.title || d.ch || "");
+      if (!best[key] || String(d.date) > String(best[key].date)) best[key] = d;
+    });
+    const all = Object.values(best).map(d => ({
+      name: d.n || "", cls: d.cls || "", chapter: d.title || d.ch || "",
+      score: +d.s || 0, total: +d.t || 0, date: d.date || "", detail: d.detail || ""
+    }));
+    // class filter options
+    cloudAllRows = all;
+    const classes = [...new Set(all.map(r => r.cls).filter(Boolean))].sort();
+    const sel = document.getElementById("cloudCls");
+    const keep = sel.value;
+    sel.innerHTML = `<option value="">All classes</option>` +
+      classes.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+    if (classes.includes(keep)) sel.value = keep;
+    applyCloudFilter();
+    statEl.textContent = `${docs.length} submissions · ${all.length} latest attempts`;
+  } catch (e) {
+    errEl.textContent = "Load failed: " + (e.message || e);
+  }
+  btn.disabled = false; btn.textContent = "Load cloud results";
+}
+
+function applyCloudFilter() {
+  const sel = document.getElementById("cloudCls");
+  const all = cloudAllRows.filter(r => !sel.value || r.cls === sel.value);
+  rows = all.slice().sort((a, b) => a.name.localeCompare(b.name));
+  document.getElementById("summary").style.display = rows.length ? "block" : "none";
+  if (rows.length) renderSummary();
+}
+let cloudAllRows = [];
+document.getElementById("cloudCls").addEventListener("change", applyCloudFilter);
+
 </script>
 </body>
 </html>
