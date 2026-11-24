@@ -1,2 +1,2 @@
-/* CloudBase config — paste your env id between the quotes, e.g. "demo-1gabc123" */
-const TCB_ENV = "";
+/* CloudBase config — env id filled 2026-11-24 */
+const TCB_ENV = "ibchem-d7gha0jpg2767377e";
