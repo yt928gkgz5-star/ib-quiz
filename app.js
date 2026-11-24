@@ -183,7 +183,7 @@ function activeChapters() {
 
 /* ---------- cloud reporting (Tencent CloudBase, optional) ---------- */
 /* If cloud-config.js has an env id, every finished attempt is stored in the
-   "attempts" collection so the teacher can see results without score codes. */
+   "attempts" table (CloudBase PostgreSQL) so the teacher can see results without score codes. */
 let _tcbApp = null;
 async function tcbReady() {
   if (typeof TCB_ENV === "undefined" || !TCB_ENV || typeof cloudbase === "undefined") return null;
@@ -196,7 +196,8 @@ async function tcbReady() {
 }
 function cloudReport(data) {
   tcbReady()
-    .then(app => app && app.database().collection("attempts").add(data))
+    .then(app => app && app.rdb().from("attempts").insert(data))
+    .then(r => { if (r && r.error) throw r.error; })
     .catch(err => console.warn("cloud report skipped:", err && err.message || err));
 }
 

@@ -194,8 +194,14 @@ function renderSummary() {
     <td>${esc(r.name)}</td><td>${esc(r.chapter)}</td>
     <td class="num">${r.score}/${r.total}</td>
     <td class="num">${Math.round(100 * r.score / r.total)}%</td>
-    <td>${esc(r.date)}</td></tr>`).join("");
+    <td>${esc(fmtDate(r.date))}</td></tr>`).join("");
   renderMbCard();
+}
+function fmtDate(s) {
+  const d = new Date(s);
+  if (!s || isNaN(d)) return s || "";
+  const p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 /* ---- ManageBac entry column ---- */
@@ -370,15 +376,15 @@ async function loadCloud(btn) {
   btn.disabled = true; btn.textContent = "Loading…";
   try {
     const app = await tcbReady();
-    const db = app.database();
+    const table = app.rdb().from("attempts");
     let docs = [], skip = 0;
     while (true) {
-      const res = await db.collection("attempts").orderBy("date", "desc").skip(skip).limit(100).get();
+      const res = await table.select("*").order("id", { ascending: false }).range(skip, skip + 999);
       if (res && res.error) throw res.error;
       const part = res.data || [];
       docs = docs.concat(part);
-      if (part.length < 100 || skip >= 2000) break;
-      skip += 100;
+      if (part.length < 1000 || skip >= 20000) break;
+      skip += 1000;
     }
     // keep only the latest attempt per student + chapter
     const best = {};
