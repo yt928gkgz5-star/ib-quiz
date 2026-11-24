@@ -194,11 +194,53 @@ async function tcbReady() {
   }
   return _tcbApp;
 }
-function cloudReport(data) {
-  tcbReady()
+function cloudReportAsync(data) {
+  return tcbReady()
     .then(app => app && app.rdb().from("attempts").insert(data))
-    .then(r => { if (r && r.error) throw r.error; })
+    .then(r => { if (r && r.error) throw r.error; });
+}
+function cloudReport(data) {
+  cloudReportAsync(data)
     .catch(err => console.warn("cloud report skipped:", err && err.message || err));
+}
+/* Attempts finished before cloud reporting existed live only in this browser's
+   localStorage (latest one per chapter). Upload each of them once, on page load. */
+function cloudMarkSynced(id, date) { localStorage.setItem("cloudsync:attempt:" + id, String(date)); }
+async function backfillLocalAttempts() {
+  try {
+    if (typeof TCB_ENV === "undefined" || !TCB_ENV || typeof cloudbase === "undefined") return;
+    const name = (localStorage.getItem("stuName") || "").trim();
+    if (!name) return;
+    const byId = {};
+    [QUIZ_DATA.chapters, PREIB_CH, PREIB_FRQ_CH].forEach(list => (list || []).forEach(c => { byId[c.id] = c; }));
+    const cls = (getAccess() || {}).cls || "";
+    const pend = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || k.indexOf("attempt:") !== 0) continue;
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(k) || "null"); } catch (e) {}
+      if (!saved || saved.score === undefined) continue;
+      if (localStorage.getItem("cloudsync:" + k) === String(saved.date)) continue;
+      pend.push({ id: k.slice(8), saved });
+    }
+    for (const p of pend) {
+      const ch = byId[p.id] || { id: p.id, title: p.id };
+      const s = p.saved;
+      await cloudReportAsync({
+        n: name, cls: cls, ch: p.id, title: ch.title || p.id,
+        level: ch.level2 || "Pre-IB", paper: ch.paper || (s.kind === "frq" ? "FRQ" : s.kind === "p2" ? "P2" : "MCQ"),
+        s: +s.score || 0, t: +s.total || 0,
+        detail: s.kind === "frq" && s.results ? s.results.map(r => (r && r.s) || 0).join("-")
+          : s.kind === "p2" && s.marks ? (ch.questions || []).map((q, qi) => { const m = s.marks[qi]; return m ? m.g + "/" + m.t : "0/0"; }).join("-")
+          : "",
+        date: s.date || ""
+      });
+      cloudMarkSynced(p.id, s.date);
+    }
+  } catch (err) {
+    console.warn("cloud backfill stopped:", err && err.message || err);
+  }
 }
 
 /* ---------- access codes ---------- */
@@ -702,11 +744,12 @@ function finish() {
     : isP2
       ? { score: s, total: t, date: payload.d, kind: "p2", answers: state.answers, marks: state.marks }
       : { score: s, total: t, date: payload.d }));
-  cloudReport({
+  cloudReportAsync({
     n: payload.n, cls: (getAccess() || {}).cls || "", ch: ch.id, title: ch.title,
     level: ch.level2 || "", paper: ch.paper || "MCQ",
     s: s, t: t, detail: payload.a, date: payload.d
-  });
+  }).then(() => cloudMarkSynced(ch.id, payload.d))
+    .catch(err => console.warn("cloud report skipped:", err && err.message || err));
 
   app.innerHTML = `
   <header class="site small"><div class="inner">
@@ -744,3 +787,4 @@ function copyCode(btn) {
 }
 
 render();
+backfillLocalAttempts();
