@@ -103,7 +103,7 @@ td.num { font-variant-numeric: tabular-nums; }
     <div class="err" id="cloudErr"></div>
   </section>
 </main>
-<script src="tcb.js"></script>
+<script src="tcb3.js"></script>
 <script src="cloud-config.js"></script>
 <script src="data.js"></script>
 <script src="roster-data.js"></script>
@@ -353,12 +353,12 @@ function clearAll() {
 /* ---- section 4: cloud results (CloudBase "attempts" collection) ---- */
 let _tcbApp = null;
 async function tcbReady() {
-  if (typeof TCB_ENV === "undefined" || !TCB_ENV || typeof tcb === "undefined")
+  if (typeof TCB_ENV === "undefined" || !TCB_ENV || typeof cloudbase === "undefined")
     throw new Error("Cloud env id is not configured yet (cloud-config.js).");
   if (!_tcbApp) {
-    _tcbApp = tcb.init({ env: TCB_ENV });
-    const auth = _tcbApp.auth({ persistence: "local" });
-    if (!(await auth.getLoginState())) await auth.anonymousAuthProvider().signIn();
+    _tcbApp = cloudbase.init({ env: TCB_ENV, region: (typeof TCB_REGION !== "undefined" && TCB_REGION) || "ap-shanghai" });
+    const r = await _tcbApp.auth.signInAnonymously();
+    if (r && r.error) throw r.error;
   }
   return _tcbApp;
 }
@@ -374,6 +374,7 @@ async function loadCloud(btn) {
     let docs = [], skip = 0;
     while (true) {
       const res = await db.collection("attempts").orderBy("date", "desc").skip(skip).limit(100).get();
+      if (res && res.error) throw res.error;
       const part = res.data || [];
       docs = docs.concat(part);
       if (part.length < 100 || skip >= 2000) break;

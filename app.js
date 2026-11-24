@@ -186,11 +186,11 @@ function activeChapters() {
    "attempts" collection so the teacher can see results without score codes. */
 let _tcbApp = null;
 async function tcbReady() {
-  if (typeof TCB_ENV === "undefined" || !TCB_ENV || typeof tcb === "undefined") return null;
+  if (typeof TCB_ENV === "undefined" || !TCB_ENV || typeof cloudbase === "undefined") return null;
   if (!_tcbApp) {
-    _tcbApp = tcb.init({ env: TCB_ENV });
-    const auth = _tcbApp.auth({ persistence: "local" });
-    if (!(await auth.getLoginState())) await auth.anonymousAuthProvider().signIn();
+    _tcbApp = cloudbase.init({ env: TCB_ENV, region: (typeof TCB_REGION !== "undefined" && TCB_REGION) || "ap-shanghai" });
+    const r = await _tcbApp.auth.signInAnonymously();
+    if (r && r.error) throw r.error;
   }
   return _tcbApp;
 }
