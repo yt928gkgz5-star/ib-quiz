@@ -2,6 +2,7 @@
 const app = document.getElementById("app");
 const PAGE_SIZE = 8;
 const P2_PAGE_SIZE = 2;
+const isStructPaper = p => p === "P2" || p === "P1B";   // self-marking with official mark scheme
 let state = { view: "home", chapter: null, name: "", answers: {}, marks: {}, page: 0, submitted: false, marking: false,
   browse: { level: "SL", paper: "MCQ" } };
 /* Level keys are internal and stable (access codes and saved attempts rely on them);
@@ -458,7 +459,7 @@ function reviewFromHistory(el) {
   const ch = findChapter(r.ch);
   if (!ch) { alert("This quiz is no longer available."); return; }
   if (!isAllowed(ch)) { alert("This quiz is not unlocked by the access code on this device."); return; }
-  const kind = ch.paper === "FRQ" ? "frq" : ch.paper === "P2" ? "p2" : "mcq";
+  const kind = ch.paper === "FRQ" ? "frq" : isStructPaper(ch.paper) ? "p2" : "mcq";
   let saved = null;
   try { saved = r.data ? JSON.parse(r.data) : null; } catch (e) {}
   if (!saved && kind === "mcq") {                   // rows written before full answers were stored
@@ -751,7 +752,7 @@ function openChapter(i) {
     state.submitted = true;
     state.reviewDate = saved.date || "";
   }
-  if (ch.paper === "P2" && saved && saved.kind === "p2") {
+  if (isStructPaper(ch.paper) && saved && saved.kind === "p2") {
     state.answers = saved.answers || {};
     state.marks = saved.marks || {};
     state.submitted = true;
@@ -825,7 +826,7 @@ function renderQuiz() {
   const ch = activeChapters()[state.chapter];
   if (!ch) { state.view = "home"; renderHome(); return; }
   const isFRQ = ch.paper === "FRQ";
-  const isP2 = ch.paper === "P2";
+  const isP2 = isStructPaper(ch.paper);
   const total = ch.questions.length;
   const size = isFRQ ? 5 : isP2 ? P2_PAGE_SIZE : PAGE_SIZE;
   const pages = Math.ceil(total / size);
@@ -957,7 +958,7 @@ function pick(btn) {
 
 function goPage(p) {
   const ch = activeChapters()[state.chapter];
-  const size = ch.paper === "FRQ" ? 5 : ch.paper === "P2" ? P2_PAGE_SIZE : PAGE_SIZE;
+  const size = ch.paper === "FRQ" ? 5 : isStructPaper(ch.paper) ? P2_PAGE_SIZE : PAGE_SIZE;
   const total = ch.questions.length;
   const pages = Math.ceil(total / size);
   if (p < 0 || p >= pages) return;
@@ -991,7 +992,7 @@ async function submitQuiz() {
   localStorage.setItem("stuName", state.name);
   const ch = activeChapters()[state.chapter];
   const isFRQ = ch.paper === "FRQ";
-  const isP2 = ch.paper === "P2";
+  const isP2 = isStructPaper(ch.paper);
   const total = ch.questions.length;
   const answered = (isFRQ || isP2)
     ? ch.questions.filter((q, qi) => String(state.answers[qi] || "").trim()).length
@@ -1040,7 +1041,7 @@ function score() {
     const t = ch.questions.reduce((a, q) => a + (q.marks || 0), 0);
     return { s, t };
   }
-  if (ch.paper === "P2") {
+  if (isStructPaper(ch.paper)) {
     let s = 0, t = 0;
     ch.questions.forEach((q, qi) => {
       const m = state.marks[qi];
@@ -1056,7 +1057,7 @@ function score() {
 function finish() {
   const ch = activeChapters()[state.chapter];
   const isFRQ = ch.paper === "FRQ";
-  const isP2 = ch.paper === "P2";
+  const isP2 = isStructPaper(ch.paper);
   const { s, t } = score();
   if (!t) { alert("No marks recorded yet."); return; }
   const pct = Math.round(100 * s / t);
