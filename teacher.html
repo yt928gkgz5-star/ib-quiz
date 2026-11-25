@@ -72,7 +72,7 @@ td.num { font-variant-numeric: tabular-nums; }
     <div class="listhead">Attempts</div>
     <div class="stat" id="stat"></div>
     <table id="tbl"><thead><tr>
-      <th>Student</th><th>Chapter</th><th>Score</th><th>%</th><th>Submitted</th>
+      <th>Student</th><th>Quiz</th><th>Score</th><th>%</th><th>Submitted</th><th></th>
     </tr></thead><tbody></tbody></table>
   </section>
   <section class="card" id="mbCard" style="display:none">
@@ -91,25 +91,63 @@ td.num { font-variant-numeric: tabular-nums; }
     <textarea class="ta" id="colBox" style="min-height:120px; margin-top:10px" readonly></textarea>
   </section>
   <section class="card" id="cloudCard">
-    <div class="listhead">4 · Cloud results (auto-reported)</div>
-    <p class="footnote" style="margin-top:4px">Every finished attempt on the student site is reported here automatically — no score codes needed. For each student + chapter only the <b>latest</b> submission is kept.</p>
+    <div class="listhead">4 · Student answers &amp; summary (auto-reported)</div>
+    <p class="footnote" style="margin-top:4px">Every finished attempt on the student site is reported here automatically — no score codes needed. For each student + quiz the <b>latest</b> submission is shown; press <b>Answers</b> to see how they did on each question.</p>
     <div class="row">
-      <select id="cloudCls" style="min-width:180px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff">
-        <option value="">All classes</option>
-      </select>
+      <select id="cloudCls" style="min-width:130px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff"><option value="">All classes</option></select>
+      <select id="cloudGroup" style="min-width:170px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff"><option value="">All sections</option></select>
+      <select id="cloudCh" style="min-width:200px; max-width:340px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff"><option value="">All quizzes</option></select>
       <button onclick="loadCloud(this)">Load cloud results</button>
       <span class="acc-status" id="cloudStat"></span>
     </div>
     <div class="err" id="cloudErr"></div>
+    <div class="stat" id="cloudOverview"></div>
+    <div class="row" id="cloudViewRow" style="display:none">
+      <select id="cloudView" style="min-width:260px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff" onchange="applyCloudFilter()">
+        <option value="quiz">One quiz — list of students</option>
+        <option value="student">Summary by student</option>
+        <option value="matrix">Matrix — students × quizzes</option>
+      </select>
+      <button class="ghost" onclick="downloadCSV()">Download CSV</button>
+    </div>
+    <div id="cloudDash" style="overflow-x:auto"></div>
+  </section>
+  <section class="card" id="mapCard">
+    <div class="listhead">5 · Past paper sets — which session each set is</div>
+    <p class="footnote" style="margin-top:4px">Students only ever see <b>Set 1, Set 2 …</b>; the session is never shown on the student site. This table is for you only.</p>
+    <div class="row">
+      <select id="mapLevel" style="min-width:180px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff" onchange="renderPaperMap()">
+        <option value="SLP">SL Past Papers</option>
+        <option value="HLP">HL Past Papers</option>
+      </select>
+      <span class="acc-status" id="mapStat"></span>
+    </div>
+    <table id="mapTbl"><thead><tr><th>Set</th><th>Session</th><th>Time zone</th><th>Chapter IDs</th></tr></thead><tbody></tbody></table>
+  </section>
+  <section class="card" id="accCard">
+    <div class="listhead">6 · Student accounts</div>
+    <p class="footnote" style="margin-top:4px">A student creates their account the first time they sign in (name + a private PIN of their choice). Once a name has an account, nobody can submit under that name without the PIN. To reset a forgotten PIN, delete the row in the SQL console: <code>delete from students where n = '12ib Alex';</code> — the student then signs in again and creates a new PIN.</p>
+    <div class="row">
+      <button onclick="loadAccounts(this)">Load accounts</button>
+      <span class="acc-status" id="accStat"></span>
+    </div>
+    <div class="err" id="accErr"></div>
+    <table id="accTbl"><thead><tr><th>#</th><th>Student</th><th>Class code</th><th>Created</th></tr></thead><tbody></tbody></table>
   </section>
 </main>
 <script src="tcb3.js"></script>
 <script src="cloud-config.js"></script>
+<script src="papers-map.js"></script>
 <script src="data.js"></script>
 <script src="roster-data.js"></script>
 <script>
 let rows = [];
 const CH = {};
+const LEVEL_LABELS = { "Pre-IB": "Pre-IB", "SL": "Topical SL", "HL": "Topical HL", "SLP": "SL Past Papers", "HLP": "HL Past Papers" };
+function levelPaperLabel(level2, paper) {
+  const past = /P$/.test(level2 || "");
+  return (LEVEL_LABELS[level2 || "SL"] || level2) + " · " + (past ? ({ "MCQ": "Paper 1", "P2": "Paper 2" }[paper] || paper) : paper);
+}
 
 /* ---- access code generator (same scheme as app.js) ---- */
 function hash6(s) {
@@ -124,15 +162,59 @@ function buildChapterList() {
   const box = document.getElementById("chList");
   const byKey = {};
   QUIZ_DATA.chapters.forEach(ch => {
-    const key = (ch.level2 || "SL") + " · " + (ch.paper || "MCQ");
+    const key = levelPaperLabel(ch.level2 || "SL", ch.paper || "MCQ");
     (byKey[key] = byKey[key] || []).push(ch);
   });
-  box.innerHTML = Object.keys(byKey).map(key => `
+  box.innerHTML = Object.keys(byKey).map((key, gi) => `
     <div class="grp">
-      <div class="grp-h">${key}</div>
+      <div class="grp-h">${key}
+        <a class="tlink" style="font-weight:400; margin-left:10px" onclick="toggleGroup(this, ${gi})">select all / none</a></div>
+      <div class="grp-body" data-g="${gi}">
       ${byKey[key].map(ch => `
-        <label class="ck"><input type="checkbox" value="${ch.id}"> ${ch.title} <span class="cnt">(${ch.questions.length} Q)</span></label>`).join("")}
+        <label class="ck"><input type="checkbox" value="${ch.id}"> ${esc(ch.title)} <span class="cnt">(${ch.questions.length} Q)</span></label>`).join("")}
+      </div>
     </div>`).join("");
+}
+function toggleGroup(link, gi) {
+  const boxes = document.querySelector('.grp-body[data-g="' + gi + '"]').querySelectorAll('input[type="checkbox"]');
+  const on = !Array.from(boxes).every(b => b.checked);
+  boxes.forEach(b => { b.checked = on; });
+  link.textContent = on ? "clear group" : "select all / none";
+}
+function renderPaperMap() {
+  const lvl = document.getElementById("mapLevel").value;
+  const tb = document.querySelector("#mapTbl tbody");
+  const prefix = lvl.toLowerCase().replace(/p$/, "");                 // "SLP" -> "sl" (chapter ids are slset3p1, hlset3p1)
+  const list = (typeof PAPERS_MAP === "undefined" ? [] : PAPERS_MAP).filter(r => r.level === lvl);
+  tb.innerHTML = list.map(r => {
+    const ids = ["p1", "p2"].map(p => prefix + "set" + r.set + p).filter(id => QUIZ_DATA.chapters.some(c => c.id === id));
+    return `<tr><td>Set ${r.set}</td><td>${esc(r.session)}</td><td>${esc(r.tz || "—")}</td>
+      <td>${ids.map(id => "<code>" + id + "</code>").join(" ")}</td></tr>`;
+  }).join("");
+  document.getElementById("mapStat").textContent = `${list.length} sets`;
+}
+async function loadAccounts(btn) {
+  const errEl = document.getElementById("accErr"), statEl = document.getElementById("accStat");
+  errEl.textContent = "";
+  btn.disabled = true; btn.textContent = "Loading…";
+  try {
+    const app = await tcbReady();
+    let skip = 0, all = [];
+    while (true) {
+      const r = await app.rdb().from("students").select("*").order("created_at", { ascending: true }).range(skip, skip + 999);
+      if (r.error) throw r.error;
+      const part = r.data || [];
+      all = all.concat(part);
+      if (part.length < 1000 || skip >= 9000) break;
+      skip += 1000;
+    }
+    all.sort((a, b) => String(a.n).localeCompare(String(b.n)));
+    document.querySelector("#accTbl tbody").innerHTML = all.map((a, i) => `<tr><td>${i + 1}</td><td>${esc(a.n)}</td><td>${esc(a.cls || "")}</td><td>${fmtDate(a.created_at)}</td></tr>`).join("");
+    statEl.textContent = `${all.length} account${all.length === 1 ? "" : "s"} created`;
+  } catch (e) {
+    errEl.textContent = "Load failed: " + (e.code ? e.code + " — " : "") + (e.message || e) + (String(e.code || "").indexOf("PGRST205") > -1 ? " (the students table has not been created yet)" : "");
+  }
+  btn.disabled = false; btn.textContent = "Load accounts";
 }
 function genCode(full) {
   const cls = document.getElementById("clsName").value.trim();
@@ -159,6 +241,7 @@ function copyGen(btn) {
   });
 }
 buildChapterList();
+renderPaperMap();
 
 function decode(code) {
   const txt = atob(code.trim());
@@ -190,11 +273,12 @@ function renderSummary() {
     `<div><b>${rows.length}</b>attempts</div>
      <div><b>${new Set(rows.map(r => r.name)).size}</b>students</div>
      <div><b>${avg}%</b>average</div>`;
-  tb.innerHTML = rows.map(r => `<tr>
+  tb.innerHTML = rows.map((r, i) => `<tr data-i="${i}">
     <td>${esc(r.name)}</td><td>${esc(r.chapter)}</td>
     <td class="num">${r.score}/${r.total}</td>
     <td class="num">${Math.round(100 * r.score / r.total)}%</td>
-    <td>${esc(fmtDate(r.date))}</td></tr>`).join("");
+    <td>${esc(fmtDate(r.date))}</td>
+    <td><a class="tlink" onclick="toggleAnswers(${i})">Answers</a></td></tr>`).join("");
   renderMbCard();
 }
 function fmtDate(s) {
@@ -386,42 +470,148 @@ async function loadCloud(btn) {
       if (part.length < 1000 || skip >= 20000) break;
       skip += 1000;
     }
-    // keep only the latest attempt per student + chapter
+    // keep only the latest attempt per student + quiz (keyed by chapter id: SL and HL sets share titles)
     const best = {};
     docs.forEach(d => {
-      const key = (d.n || "") + "||" + (d.title || d.ch || "");
-      if (!best[key] || String(d.date) > String(best[key].date)) best[key] = d;
+      const key = (d.n || "") + "||" + (d.ch || d.title || "");
+      if (!best[key] || String(d.id) > String(best[key].id)) best[key] = d;
     });
-    const all = Object.values(best).map(d => ({
-      name: d.n || "", cls: d.cls || "", chapter: d.title || d.ch || "",
+    cloudAllRows = Object.values(best).map(d => ({
+      name: d.n || "", cls: d.cls || "", ch: d.ch || "",
+      level: String(d.ch || "").indexOf("preib-") === 0 ? "Pre-IB" : (d.level || ""),   // Pre-IB rows reuse SL questions
+      paper: d.paper || "MCQ",
+      group: "",
+      chapter: chapterLabel(d),
       score: +d.s || 0, total: +d.t || 0, date: d.date || "", detail: d.detail || ""
     }));
-    // class filter options
-    cloudAllRows = all;
-    const classes = [...new Set(all.map(r => r.cls).filter(Boolean))].sort();
-    const sel = document.getElementById("cloudCls");
-    const keep = sel.value;
-    sel.innerHTML = `<option value="">All classes</option>` +
-      classes.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
-    if (classes.includes(keep)) sel.value = keep;
+    cloudAllRows.forEach(r => { r.group = levelPaperLabel(r.level || "SL", r.paper); });
+    fillCloudFilters();
     applyCloudFilter();
-    statEl.textContent = `${docs.length} submissions · ${all.length} latest attempts`;
+    statEl.textContent = `${docs.length} submissions · ${cloudAllRows.length} latest attempts`;
   } catch (e) {
-    errEl.textContent = "Load failed: " + (e.message || e);
+    errEl.textContent = "Load failed: " + (e.code ? e.code + " — " : "") + (e.message || e);
   }
   btn.disabled = false; btn.textContent = "Load cloud results";
 }
-
-function applyCloudFilter() {
-  const sel = document.getElementById("cloudCls");
-  const all = cloudAllRows.filter(r => !sel.value || r.cls === sel.value);
-  rows = all.slice().sort((a, b) => a.name.localeCompare(b.name));
-  document.getElementById("summary").style.display = rows.length ? "block" : "none";
-  if (rows.length) renderSummary();
+function chapterLabel(d) {
+  const past = /P$/.test(d.level || "");
+  return (past ? (LEVEL_LABELS[d.level] || d.level).replace(" Past Papers", "") + " · " : "") + (d.title || d.ch || "");
 }
 let cloudAllRows = [];
-document.getElementById("cloudCls").addEventListener("change", applyCloudFilter);
-
+const LEVEL_RANK = { "Pre-IB": 0, "SL": 1, "HL": 2, "SLP": 3, "HLP": 4 };
+function quizOrder(c) {                    // sort quizzes the way students see them
+  const n = c.ch.match(/set(\d+)/) || c.ch.match(/ch(\d+)/) || [0, 0];
+  return [LEVEL_RANK[c.level] === undefined ? 9 : LEVEL_RANK[c.level], c.paper === "MCQ" ? 0 : c.paper === "P2" ? 1 : 2, +n[1], c.ch];
+}
+function fillCloudFilters() {
+  const keepG = cloudGroup.value, keepC = cloudCh.value;
+  const groups = [...new Set(cloudAllRows.map(r => r.group))].sort();
+  cloudGroup.innerHTML = `<option value="">All sections</option>` + groups.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join("");
+  if (groups.includes(keepG)) cloudGroup.value = keepG;
+  fillQuizFilter();
+  if (Array.from(cloudCh.options).some(o => o.value === keepC)) cloudCh.value = keepC;
+}
+function fillQuizFilter() {
+  const inClass = cloudAllRows.filter(r => !cloudCls.value || r.cls === cloudCls.value);
+  const quizzes = [...new Set(inClass.filter(r => !cloudGroup.value || r.group === cloudGroup.value).map(r => r.chapter))]
+    .sort((a, b) => quizOrder(inClass.find(r => r.chapter === a)) - quizOrder(inClass.find(r => r.chapter === b)));
+  const keep = cloudCh.value;
+  cloudCh.innerHTML = `<option value="">All quizzes</option>` + quizzes.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  if (quizzes.includes(keep)) cloudCh.value = keep;
+}
+function applyCloudFilter() {
+  const cls = cloudCls.value, grp = cloudGroup.value, chap = cloudCh.value, view = cloudView.value;
+  const inScope = cloudAllRows.filter(r => (!cls || r.cls === cls) && (!grp || r.group === grp));
+  rows = inScope.filter(r => !chap || r.chapter === chap).slice().sort((a, b) => a.name.localeCompare(b.name));
+  const summary = document.getElementById("summary"), mb = document.getElementById("mbCard"), dash = document.getElementById("cloudDash");
+  document.getElementById("cloudViewRow").style.display = cloudAllRows.length ? "" : "none";
+  // overview: latest attempts per student + quiz
+  const names = [...new Set(inScope.map(r => r.name))];
+  const pcts = inScope.filter(r => r.total > 0).map(r => r.score / r.total);
+  const avg = pcts.length ? Math.round(100 * pcts.reduce((a, b) => a + b, 0) / pcts.length) : 0;
+  document.getElementById("cloudOverview").innerHTML = cloudAllRows.length
+    ? `<div><b>${names.length}</b>students</div><div><b>${inScope.length}</b>attempts</div><div><b>${avg}%</b>average</div>` : "";
+  const asQuiz = view === "quiz";
+  summary.style.display = asQuiz && rows.length ? "block" : "none";
+  mb.style.display = "none";
+  if (asQuiz) {
+    dash.innerHTML = "";
+    if (rows.length) {
+      renderSummary();
+      if (!chap) mb.style.display = "none";       // the ManageBac column only makes sense for one quiz
+    } else if (cloudAllRows.length) dash.innerHTML = `<div class="meta" style="padding:8px 0">No attempts for this selection yet. Choose another quiz or section, or switch the view to <b>Summary by student</b>.</div>`;
+    return;
+  }
+  dash.innerHTML = view === "student" ? byStudentHTML(inScope) : matrixHTML(inScope);
+}
+function pctClass(p) { return p >= 70 ? "#DDEFDC" : p >= 40 ? "#FBEBC8" : "#F6D5D5"; }
+function byStudentHTML(list) {
+  const by = {};
+  list.forEach(r => { (by[r.name] = by[r.name] || { name: r.name, cls: r.cls, rs: [] }).rs.push(r); });
+  const st = Object.values(by).sort((a, b) => a.cls.localeCompare(b.cls) || a.name.localeCompare(b.name));
+  if (!st.length) return `<div class="meta" style="padding:8px 0">No attempts for this selection yet.</div>`;
+  return `<table><thead><tr><th>#</th><th>Student</th><th>Class</th><th>Quizzes done</th><th>Average</th><th>Best</th><th>Lowest</th><th>Last submitted</th></tr></thead><tbody>` +
+    st.map((s, i) => {
+      const ps = s.rs.filter(r => r.total > 0).map(r => Math.round(100 * r.score / r.total));
+      const last = s.rs.map(r => r.date).sort().pop();
+      return `<tr><td>${i + 1}</td><td>${esc(s.name)}</td><td>${esc(s.cls)}</td><td class="num">${s.rs.length}</td>
+        <td class="num"><b>${ps.length ? Math.round(ps.reduce((a, b) => a + b, 0) / ps.length) : 0}%</b></td>
+        <td class="num">${ps.length ? Math.max(...ps) + "%" : "–"}</td><td class="num">${ps.length ? Math.min(...ps) + "%" : "–"}</td>
+        <td>${esc(fmtDate(last))}</td></tr>`;
+    }).join("") + "</tbody></table>";
+}
+function matrixHTML(list) {
+  const by = {};
+  list.forEach(r => { (by[r.name] = by[r.name] || { name: r.name, cls: r.cls, cells: {} }).cells[r.chapter] = r; });
+  const st = Object.values(by).sort((a, b) => a.cls.localeCompare(b.cls) || a.name.localeCompare(b.name));
+  const cols = [...new Set(list.map(r => r.chapter))].sort((a, b) => quizOrder(list.find(r => r.chapter === a)) - quizOrder(list.find(r => r.chapter === b)));
+  if (!st.length) return `<div class="meta" style="padding:8px 0">No attempts for this selection yet.</div>`;
+  const head = `<thead><tr><th>Student</th>${cols.map(c => `<th style="white-space:nowrap">${esc(c)}</th>`).join("")}<th>Average</th></tr></thead>`;
+  const body = st.map(s => {
+    const ps = [];
+    const tds = cols.map(c => {
+      const r = s.cells[c];
+      if (!r || !r.total) return `<td class="num" style="background:#F3F3F1">–</td>`;
+      const p = Math.round(100 * r.score / r.total); ps.push(p);
+      return `<td class="num" title="${esc(s.name)} · ${esc(c)}: ${r.score}/${r.total}" style="background:${pctClass(p)}">${p}</td>`;
+    }).join("");
+    return `<tr><td style="white-space:nowrap">${esc(s.name)} <span class="cnt">${esc(s.cls)}</span></td>${tds}<td class="num"><b>${ps.length ? Math.round(ps.reduce((a, b) => a + b, 0) / ps.length) : "–"}</b></td></tr>`;
+  }).join("");
+  const avgRow = `<tr><td><b>Class average</b></td>${cols.map(c => {
+    const ps = list.filter(r => r.chapter === c && r.total).map(r => 100 * r.score / r.total);
+    return `<td class="num">${ps.length ? Math.round(ps.reduce((a, b) => a + b, 0) / ps.length) : ""}</td>`;
+  }).join("")}<td></td></tr>`;
+  return `<div style="max-height:70vh; overflow:auto"><table>${head}<tbody>${body}${avgRow}</tbody></table></div>` +
+    `<div class="meta" style="margin-top:6px">Cell = latest score as a percentage. Green ≥ 70 · amber ≥ 40 · red &lt; 40 · grey = not attempted.</div>`;
+}
+function answerCells(r) {
+  if (r.paper === "MCQ") {
+    const ch = QUIZ_DATA.chapters.find(c => c.id === r.ch);
+    return String(r.detail || "").split("").map((c, i) => {
+      const k = "ABCD".indexOf(c), q = ch && ch.questions[i];
+      const right = k > -1 && q && (q.void || k === q.answer || (q.alt || []).indexOf(k) > -1);
+      const wrong = k > -1 && q && !right;
+      const bg = !q ? "#EEE" : right ? "#CDE7CD" : wrong ? "#F2C9C9" : "#EDEDED";
+      return `<span title="Q${i + 1}: ${k > -1 ? "chose " + c : "no answer"}${q && !q.void ? ", answer " + [q.answer].concat(q.alt || []).map(v => "ABCD"[v]).join("/") : ""}" style="display:inline-block; min-width:26px; margin:2px; padding:3px 4px; border-radius:4px; text-align:center; background:${bg}">${i + 1}<br><span style="font-size:11px">${k > -1 ? c : "–"}</span></span>`;
+    }).join("");
+  }
+  return String(r.detail || "").split("-").map((m, i) => `<span title="Question ${i + 1}" style="display:inline-block; min-width:34px; margin:2px; padding:3px 4px; border-radius:4px; text-align:center; background:${/^[1-9]/.test(m) ? "#DDEFDC" : "#EDEDED"}">Q${i + 1}<br><span style="font-size:11px">${esc(m || "–")}</span></span>`).join("");
+}
+function toggleAnswers(i) {
+  const tr = document.getElementById("ans" + i);
+  if (tr) { tr.remove(); return; }
+  const row = document.querySelector("#tbl tbody tr[data-i='" + i + "']");
+  if (!row) return;
+  const el = document.createElement("tr");
+  el.id = "ans" + i;
+  el.innerHTML = `<td></td><td colspan="5" style="background:#FAFAF8">${answerCells(rows[i])}</td>`;
+  row.after(el);
+}
+const cloudCls = document.getElementById("cloudCls"), cloudGroup = document.getElementById("cloudGroup"),
+      cloudCh = document.getElementById("cloudCh"), cloudView = document.getElementById("cloudView");
+cloudCls.addEventListener("change", () => { fillQuizFilter(); applyCloudFilter(); });
+cloudGroup.addEventListener("change", () => { fillQuizFilter(); applyCloudFilter(); });
+cloudCh.addEventListener("change", applyCloudFilter);
 </script>
 </body>
 </html>

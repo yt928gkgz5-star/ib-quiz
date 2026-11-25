@@ -4,10 +4,15 @@ const PAGE_SIZE = 8;
 const P2_PAGE_SIZE = 2;
 let state = { view: "home", chapter: null, name: "", answers: {}, marks: {}, page: 0, submitted: false, marking: false,
   browse: { level: "SL", paper: "MCQ" } };
-const LEVELS = ["Pre-IB", "SL", "HL"];
+/* Level keys are internal and stable (access codes and saved attempts rely on them);
+   LEVEL_LABELS is what students see. SLP / HLP = complete past papers shown as numbered sets. */
+const LEVELS = ["Pre-IB", "SL", "HL", "SLP", "HLP"];
+const LEVEL_LABELS = { "Pre-IB": "Pre-IB", "SL": "Topical SL", "HL": "Topical HL", "SLP": "SL Past Papers", "HLP": "HL Past Papers" };
 const PAPERS = ["MCQ", "FRQ", "P1B"];
 const PREIB_PAPERS = ["MCQ", "FRQ"];
-const LEVEL_PAPERS = { "Pre-IB": ["MCQ", "FRQ"], "SL": ["MCQ", "P2", "P1B"], "HL": ["MCQ", "P2", "P1B"] };
+const LEVEL_PAPERS = { "Pre-IB": ["MCQ", "FRQ"], "SL": ["MCQ", "P2", "P1B"], "HL": ["MCQ", "P2", "P1B"], "SLP": ["MCQ", "P2"], "HLP": ["MCQ", "P2"] };
+const isPastPaperLevel = l => /P$/.test(l);
+const paperLabel = (level, p) => isPastPaperLevel(level) ? ({ "MCQ": "Paper 1", "P2": "Paper 2" }[p] || p) : p;
 if (typeof location !== "undefined" && location.hash === "#preib") state.browse.level = "Pre-IB";
 
 /* ---------- Pre-IB topics (merged from the SL MCQ bank) ---------- */
@@ -195,9 +200,13 @@ async function tcbReady() {
   return _tcbApp;
 }
 function cloudReportAsync(data) {
-  return tcbReady()
-    .then(app => app && app.rdb().from("attempts").insert(data))
+  const send = d => tcbReady()
+    .then(app => app && app.rdb().from("attempts").insert(d))
     .then(r => { if (r && r.error) throw r.error; });
+  return send(data).catch(err => {
+    if (data.data === undefined) throw err;
+    return send(Object.assign({}, data, { data: undefined })).catch(() => { throw err; });   // table without the "data" column
+  });
 }
 function cloudReport(data) {
   cloudReportAsync(data)
@@ -205,6 +214,7 @@ function cloudReport(data) {
 }
 /* Attempts finished before cloud reporting existed live only in this browser's
    localStorage (latest one per chapter). Upload each of them once, on page load. */
+function levelKeyOf(ch) { return ch.id.indexOf("preib-") === 0 ? "Pre-IB" : (ch.level2 || "SL"); }
 function cloudMarkSynced(id, date) { localStorage.setItem("cloudsync:attempt:" + id, String(date)); }
 async function backfillLocalAttempts() {
   try {
@@ -229,8 +239,9 @@ async function backfillLocalAttempts() {
       const s = p.saved;
       await cloudReportAsync({
         n: name, cls: cls, ch: p.id, title: ch.title || p.id,
-        level: ch.level2 || "Pre-IB", paper: ch.paper || (s.kind === "frq" ? "FRQ" : s.kind === "p2" ? "P2" : "MCQ"),
+        level: levelKeyOf(ch), paper: ch.paper || (s.kind === "frq" ? "FRQ" : s.kind === "p2" ? "P2" : "MCQ"),
         s: +s.score || 0, t: +s.total || 0,
+        data: JSON.stringify(s),
         detail: s.kind === "frq" && s.results ? s.results.map(r => (r && r.s) || 0).join("-")
           : s.kind === "p2" && s.marks ? (ch.questions || []).map((q, qi) => { const m = s.marks[qi]; return m ? m.g + "/" + m.t : "0/0"; }).join("-")
           : "",
@@ -241,6 +252,188 @@ async function backfillLocalAttempts() {
   } catch (err) {
     console.warn("cloud backfill stopped:", err && err.message || err);
   }
+}
+
+/* ---------- student accounts (name + PIN) and cross-device history ---------- */
+/* An account is one row in the cloud table "students": name, class and a PIN hash. Signing in
+   personalises this page (a static site cannot enforce anything server-side): it fixes the name used
+   for submissions, refuses submissions under a name that already belongs to an account, and lists
+   every attempt stored for that name, restoring the answers so they can be reviewed. */
+const PIN_SALT = "ib-quiz-student-accounts-v1";
+function cloudOn() { return typeof TCB_ENV !== "undefined" && !!TCB_ENV && typeof cloudbase !== "undefined"; }
+function session() { try { return JSON.parse(localStorage.getItem("session") || "null"); } catch (e) { return null; } }
+function setSession(v) { v ? localStorage.setItem("session", JSON.stringify(v)) : localStorage.removeItem("session"); }
+async function dbRows(table, filters) {
+  const app = await tcbReady();
+  if (!app) throw new Error("Cloud storage is not configured.");
+  let q = app.rdb().from(table).select("*");
+  Object.keys(filters || {}).forEach(k => { q = q.eq(k, filters[k]); });
+  const r = await q;
+  if (r.error) throw r.error;
+  return r.data || [];
+}
+async function hasAccount(name) {
+  if (!cloudOn() || !name) return false;
+  try { return (await dbRows("students", { n: name })).length > 0; }
+  catch (e) { return false; }                 // accounts table not created yet: do not block anyone
+}
+async function pinHash(name, pin) {
+  if (typeof crypto === "undefined" || !crypto.subtle) throw new Error("Accounts need the page to be opened over https.");
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey("raw", enc.encode(name + "|" + pin + "|" + PIN_SALT), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: enc.encode(PIN_SALT), iterations: 60000, hash: "SHA-256" }, key, 256);
+  return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+function nowStamp() {
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function fmtWhen(v) {
+  if (!v) return "";
+  const d = new Date(String(v).indexOf("T") > -1 ? v : String(v).replace(" ", "T"));
+  if (isNaN(d)) return String(v);
+  const p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function findChapter(id) {
+  for (const list of [PREIB_CH, PREIB_FRQ_CH]) {
+    const c = list.find(x => x.id === id);
+    if (c) return c;
+  }
+  return QUIZ_DATA.chapters.find(x => x.id === id) || null;
+}
+function openAccount() { state.view = "account"; render(); window.scrollTo(0, 0); }
+function signOut() { setSession(null); state.name = ""; goHome(); }
+function accountNameField() {
+  const rc = classRoster();
+  if (!rc) return `<input type="text" id="accName" placeholder="e.g. 12ib Alex" value="${escAttr(localStorage.getItem("stuName") || "")}">`;
+  const cur = localStorage.getItem("stuName") || "";
+  return `<select id="accName"><option value="">— choose your name —</option>${rc.students.map(x => {
+    const v = `${gradePrefix(rc.name)} ${x.en || x.n}`.trim();
+    return `<option value="${escAttr(v)}"${v === cur ? " selected" : ""}>${v}</option>`;
+  }).join("")}</select>`;
+}
+function renderAccount() {
+  const s = session();
+  app.innerHTML = `
+  <header class="site small"><div class="inner">
+    <div class="back" onclick="goHome()">← Back</div>
+    <h1>${s ? "My history" : "Student sign-in"}</h1>
+    <p>${s ? `Signed in as <b>${escHTML(s.n)}</b> · <a class="tlink" onclick="signOut()">sign out</a>`
+           : "Choose the name your teacher gave you and enter your PIN."}</p>
+  </div></header>
+  <main class="wrap">
+    <section class="card">
+      ${s ? `<div id="historyBox"><div class="meta">Loading your attempts…</div></div>` : `
+      <div class="namebar"><label for="accName">Your name</label>${accountNameField()}</div>
+      <div class="namebar"><label for="accPin">PIN</label>
+        <input type="password" id="accPin" inputmode="numeric" maxlength="8" placeholder="4–8 digits" onkeydown="if (event.key === 'Enter') accountSignIn(false)">
+        <button onclick="accountSignIn(false)">Sign in</button>
+        <button class="ghost" onclick="accountSignIn(true)">Create my account</button>
+      </div>
+      <div class="meta" id="accErr" style="color:#9B2C2C; min-height:20px"></div>
+      <div class="footnote" style="border:0; padding:6px 0 0">First time here? Enter your name and <b>choose your own PIN</b>, then press <b>Create my account</b>. After that, use the same PIN to sign in on any phone or computer. Keep your PIN private — anyone who knows it can sign in as you.</div>`}
+    </section>
+  </main>`;
+}
+async function accountSignIn(create) {
+  const errEl = document.getElementById("accErr");
+  const nameEl = document.getElementById("accName"), pinEl = document.getElementById("accPin");
+  const name = (nameEl.value || "").trim(), pin = (pinEl.value || "").trim();
+  errEl.textContent = "";
+  if (!name) { errEl.textContent = "Please choose your name."; nameEl.focus(); return; }
+  if (!/^\d{4,8}$/.test(pin)) { errEl.textContent = "Your PIN must be 4 to 8 digits."; pinEl.focus(); return; }
+  if (!cloudOn()) { errEl.textContent = "Accounts are not available right now (cloud storage is off)."; return; }
+  document.querySelectorAll("button").forEach(b => { b.disabled = true; });
+  try {
+    let rows = [];
+    try { rows = await dbRows("students", { n: name }); }
+    catch (e) {
+      errEl.textContent = "Accounts are not open yet — your teacher needs to switch them on (" + (e.code || e.message || e) + ").";
+      return;
+    }
+    const h = await pinHash(name, pin);
+    if (rows.length) {
+      const row = rows.slice().sort((a, b) => String(a.created_at) < String(b.created_at) ? -1 : 1)[0];
+      if (row.pin !== h) { errEl.textContent = "That PIN does not match this name."; pinEl.focus(); return; }
+    } else {
+      if (!create) { errEl.textContent = "No account exists for " + name + " yet. Press “Create my account” the first time."; return; }
+      const app = await tcbReady();
+      const ins = await app.rdb().from("students").insert({ n: name, cls: (getAccess() || {}).cls || "", pin: h });
+      if (ins.error) throw ins.error;
+    }
+    setSession({ n: name, t: Date.now() });
+    localStorage.setItem("stuName", name);
+    state.name = name;
+    renderAccount();
+  } catch (e) {
+    errEl.textContent = "Sign-in failed: " + (e.message || e);
+  } finally {
+    document.querySelectorAll("button").forEach(b => { b.disabled = false; });
+  }
+}
+async function loadHistory() {
+  const box = document.getElementById("historyBox"), me = session();
+  if (!box || !me) return;
+  let rows = [];
+  try {
+    const app = await tcbReady();
+    let skip = 0;
+    while (true) {                                   // newest first, 1000 rows at a time
+      const r = await app.rdb().from("attempts").select("*").eq("n", me.n).order("id", { ascending: false }).range(skip, skip + 999);
+      if (r.error) throw r.error;
+      const part = r.data || [];
+      rows = rows.concat(part);
+      if (part.length < 1000 || skip >= 9000) break;
+      skip += 1000;
+    }
+  } catch (e) {
+    box.innerHTML = `<div class="meta" style="color:#9B2C2C">Could not load your attempts: ${escHTML(e.message || String(e))}</div>`;
+    return;
+  }
+  const seen = {};
+  const items = rows.map(r => {
+    const ch = findChapter(r.ch), latest = !seen[r.ch];
+    seen[r.ch] = true;
+    const lvl = ch ? (ch.id.indexOf("preib-") === 0 ? "Pre-IB" : LEVEL_LABELS[ch.level2 || "SL"]) : (LEVEL_LABELS[r.level] || r.level || "");
+    const isMCQ = (ch ? ch.paper : r.paper) === "MCQ" || (ch ? ch.paper : r.paper) === undefined;
+    const restorable = !!ch && (isMCQ || !!r.data);     // multiple choice can always be reopened (chosen letters, or just the key)
+    const action = restorable
+      ? `<button class="ghost" data-row="${escAttr(JSON.stringify(r))}" onclick="reviewFromHistory(this)">${latest ? "Review" : "View"}</button>`
+      : `<span class="meta">score only</span>`;
+    return `<div class="chapter${ch && !isAllowed(ch) ? " locked" : ""}">
+      <div class="chapter-main"><div class="chapter-no small">${latest ? "latest" : "earlier"}</div>
+        <div><h3>${escHTML(r.title || r.ch)}</h3>
+          <div class="meta">${escHTML(lvl)} · ${fmtWhen(r.date || r.created_at)}</div></div>
+      </div>${action}<div class="badge">${+r.s || 0}/${+r.t || 0}</div></div>`;
+  });
+  box.innerHTML = rows.length
+    ? `<div class="meta" style="margin-bottom:10px">${rows.length} attempt${rows.length === 1 ? "" : "s"} on record · newest first</div>${items.join("")}`
+    : `<div class="meta">Nothing is stored for your name yet. Finish a quiz and it will appear here.</div>`;
+}
+function reviewFromHistory(el) {
+  let r;
+  try { r = JSON.parse(el.dataset.row); } catch (e) { return; }
+  const ch = findChapter(r.ch);
+  if (!ch) { alert("This quiz is no longer available."); return; }
+  if (!isAllowed(ch)) { alert("This quiz is not unlocked by the access code on this device."); return; }
+  const kind = ch.paper === "FRQ" ? "frq" : ch.paper === "P2" ? "p2" : "mcq";
+  let saved = null;
+  try { saved = r.data ? JSON.parse(r.data) : null; } catch (e) {}
+  if (!saved && kind === "mcq") {                   // rows written before full answers were stored
+    saved = { answers: {} };
+    const answers = {};
+    String(r.detail).split("").forEach((c, i) => { const k = "ABCD".indexOf(c); if (k > -1) answers[i] = k; });
+    saved = { answers };
+  }
+  if (!saved || !saved.answers) { alert("This earlier attempt only kept the score, not your answers."); return; }
+  state.browse = { level: ch.id.indexOf("preib-") === 0 ? "Pre-IB" : (ch.level2 || "SL"), paper: ch.paper || "MCQ" };
+  const idx = activeChapters().indexOf(ch);
+  if (idx < 0) { alert("This quiz could not be opened."); return; }
+  state = Object.assign({}, state, { view: "quiz", chapter: idx, name: session().n, answers: saved.answers || {},
+    marks: saved.marks || {}, frqResults: saved.results || null, page: 0, submitted: true, marking: false,
+    reviewDate: r.date || "", reviewOnly: true });
+  render(); window.scrollTo(0, 0);
 }
 
 /* ---------- access codes ---------- */
@@ -299,9 +492,14 @@ function lockedClick() {
 }
 
 function srcLabel(src) {
-  const m = /(_SL_)(\w+?)_(\d{4})_Q(\d+)$/.exec(src || "");
+  if (/^Q\d+$/.test(src || "")) return "";               // past-paper sets: the number is already printed
+  const m = /_(SL|HL)_(\w+?)_(\d{4})_Q(\d+)$/.exec(src || "");
   if (!m) return src || "";
   return `${m[3]} ${m[2]} · Q${m[4]}`;
+}
+function isRight(q, a) { return a !== undefined && a !== null && (a === q.answer || (q.alt || []).indexOf(a) > -1); }
+function answerText(q) {
+  return [q.answer].concat(q.alt || []).filter((v, i, arr) => arr.indexOf(v) === i).map(v => "ABCD"[v]).join(" / ");
 }
 
 function escAttr(s) { return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;"); }
@@ -314,6 +512,7 @@ function chapterStats(ch) {
 function render() {
   if (state.view === "home") renderHome();
   else if (state.view === "quiz") renderQuiz();
+  else if (state.view === "account") renderAccount();
   else renderResult();
 }
 
@@ -325,6 +524,9 @@ function renderHome() {
   const total = group.reduce((s, x) => s + x.ch.questions.length, 0);
   const hasBank = group.length > 0;
   const acc = getAccess();
+  const accLine = session()
+    ? `Signed in as <b>${escHTML(session().n)}</b> · <a class="tlink" onclick="openAccount()">My history</a> · <a class="tlink" onclick="signOut()">sign out</a>`
+    : `Have an account? <a class="tlink" onclick="openAccount()">Sign in</a> to see every question you have done, on any device`;
 
   const cards = group.map(x => {
     const ch = x.ch, i = x.i;
@@ -353,7 +555,7 @@ function renderHome() {
     <div class="chapter placeholder">
       <div>
         <h3>No question bank here yet</h3>
-        <div class="meta">${level} · ${paper} — this section opens once the question bank is imported.</div>
+        <div class="meta">${LEVEL_LABELS[level] || level} · ${paperLabel(level, paper)} — this section opens once the question bank is imported.</div>
       </div>
     </div>`;
 
@@ -366,24 +568,25 @@ function renderHome() {
         <input type="text" id="accessInput" placeholder="Access code, e.g. IBQ.eyJjIjoiRFIyQSJ9.k3v2q" spellcheck="false">
         <button onclick="applyCode()">Unlock</button>
       </div>
+      <div class="acc-status" id="accLine">${accLine}</div>
     </div>`;
 
   const paperTabs = (LEVEL_PAPERS[level] || PAPERS).map(p =>
-    `<button class="tab${p === paper ? " on" : ""}" onclick="setPaper('${p}')">${p}</button>`).join("");
+    `<button class="tab${p === paper ? " on" : ""}" onclick="setPaper('${p}')">${paperLabel(level, p)}</button>`).join("");
   const levelTabs = LEVELS.map(l =>
-    `<button class="pill${l === level ? " on" : ""}" onclick="setLevel('${l}')">${l}</button>`).join("");
-
+    `<button class="pill${l === level ? " on" : ""}" onclick="setLevel('${l}')">${LEVEL_LABELS[l] || l}</button>`).join("");
+  const heading = `${LEVEL_LABELS[level] || level} · ${paperLabel(level, paper)}`;
   app.innerHTML = `
   <header class="site"><div class="inner">
-    <div class="kicker">${QUIZ_DATA.course} · Topic practice</div>
+    <div class="kicker">${QUIZ_DATA.course} · Topic practice &amp; past papers</div>
     <h1>Choose your level and paper</h1>
-    <p>Real IB questions from 2017–2024 papers, split by topic. Instant marking, no login needed.</p>
+    <p>Real IB questions, by topic or as complete papers. Instant marking, no login needed.</p>
   </div></header>
   <main class="wrap">
     <div class="lvlrow">${levelTabs}</div>
     <div class="tabs">${paperTabs}</div>
     ${accBar}
-    <div class="listhead">${level} · ${paper}${hasBank ? ` · ${total} questions` : ""}</div>
+    <div class="listhead">${heading}${hasBank ? ` · ${total} questions` : ""}</div>
     ${cards}${emptyCard}
     <div class="footnote">Every question keeps its original diagram or structure, so figures stay exact. Your score is shown immediately after submission, with the correct answer for each question.<br><a class="tlink" href="teacher.html">Teacher view</a></div>
   </main>`;
@@ -423,7 +626,7 @@ function openChapter(i) {
 
 function reviewAttempt() { state.view = "quiz"; render(); window.scrollTo(0, 0); }
 function startFresh() {
-  state.answers = {}; state.marks = {}; state.frqResults = null; state.submitted = false; state.marking = false; state.reviewDate = null; state.page = 0;
+  state.answers = {}; state.marks = {}; state.frqResults = null; state.submitted = false; state.marking = false; state.reviewDate = null; state.reviewOnly = false; state.page = 0;
   render(); window.scrollTo(0, 0);
 }
 
@@ -505,14 +708,16 @@ function renderQuiz() {
     const picked = state.answers[qi];
     const opts = ["A", "B", "C", "D"].map((L, oi) => {
       let cls = "";
-      if (state.submitted) cls = oi === q.answer ? "correct" : (picked === oi ? "wrong" : "");
+      if (state.submitted) cls = isRight(q, oi) ? "correct" : (picked === oi ? "wrong" : "");
       else if (picked === oi) cls = "sel";
       return `<button class="opt ${cls}" data-q="${qi}" data-o="${oi}" onclick="pick(this)">${L}</button>`;
     }).join("");
     let verdict = "";
     if (state.submitted) {
-      const ok = picked === q.answer;
-      verdict = `<div class="verdict ${ok ? "ok" : "no"}">${ok ? "Correct" : `Incorrect — answer is ${"ABCD"[q.answer]}`}</div>`;
+      const ok = q.void || isRight(q, picked);          // a withdrawn question scores even if left blank
+      verdict = q.void
+        ? `<div class="verdict ${ok ? "ok" : "no"}">${ok ? "Mark awarded — this question was withdrawn in the original paper" : "Withdrawn question — no mark recorded"}</div>`
+        : `<div class="verdict ${ok ? "ok" : "no"}">${ok ? "Correct" : `Incorrect — answer is ${answerText(q)}`}</div>`;
     }
     return `<article class="q">
       <div class="qtop"><span class="qidx">${qi + 1}</span><span class="qsrc">${srcLabel(q.src)}</span></div>
@@ -527,7 +732,7 @@ function renderQuiz() {
       <button class="ghost" onclick="goPage(${state.page + 1})" ${state.page === pages - 1 ? "disabled" : ""}>Next</button>
     </div>` : "";
 
-  const reviewBar = (isFRQ || isP2) && state.submitted && state.reviewDate
+  const reviewBar = state.submitted && state.reviewDate
     ? `<div class="reviewbar">Reviewing your attempt from <b>${state.reviewDate}</b> · <a class="tlink" onclick="startFresh()">start a fresh attempt</a></div>` : "";
   const introBar = isFRQ && !state.submitted ? `<div class="q frqintro">${ch.intro || ""}</div>` : "";
   const p2bar = isP2 && state.marking && !state.submitted
@@ -535,14 +740,14 @@ function renderQuiz() {
 
   app.innerHTML = `
   <header class="site small"><div class="inner">
-    <div class="back" onclick="goHome()">← All chapters</div>
+    <div class="back" onclick="goHome()">← ${isPastPaperLevel(ch.level2) ? "All sets" : "All chapters"}</div>
     <h1>${ch.title}</h1>
     <p>${isFRQ ? total + " free-response questions · auto-marked" : isP2 ? total + " structured questions · mark-scheme self-marking" : total + " questions"} · ${ch.level}</p>
   </div></header>
   <main class="wrap">
     ${state.submitted ? "" : `<div class="namebar">
-      <label for="stuName">Your name</label>
-      ${nameField()}
+      <label>Your name</label>
+      ${session() ? `<b>${escHTML(session().n)}</b><a class="tlink" style="margin-left:8px" onclick="signOut()">not you? sign out</a>` : nameField()}
     </div>`}
     ${reviewBar}
     <div class="progress"><div class="progress-bar"><i id="progBar" style="width:${Math.round(100 * answered / total)}%"></i></div>
@@ -639,10 +844,15 @@ function typeAns(ta) {
 
 function goHome() { state.view = "home"; render(); window.scrollTo(0, 0); }
 
-function submitQuiz() {
+async function submitQuiz() {
   const el = document.getElementById("stuName");
-  if (el) state.name = el.value.trim();
+  if (session()) state.name = session().n;
+  else if (el) state.name = el.value.trim();
   if (!state.name) { alert("Please enter your name first."); el && el.focus(); return; }
+  if (cloudOn() && (!session() || session().n !== state.name) && await hasAccount(state.name)) {
+    alert(state.name + " already has an account. Sign in with your name and PIN to submit as " + state.name + ".");
+    return;
+  }
   localStorage.setItem("stuName", state.name);
   const ch = activeChapters()[state.chapter];
   const isFRQ = ch.paper === "FRQ";
@@ -704,7 +914,7 @@ function score() {
     return { s, t };
   }
   let s = 0;
-  ch.questions.forEach((q, qi) => { if (state.answers[qi] === q.answer) s++; });
+  ch.questions.forEach((q, qi) => { if (q.void || isRight(q, state.answers[qi])) s++; });
   return { s, t: ch.questions.length };
 }
 
@@ -725,9 +935,9 @@ function finish() {
       const ratio = m.t ? m.g / m.t : 0;
       return `<span class="cell ${m.t && m.g === m.t ? "ok" : ratio < 0.5 ? "no" : "half"}" title="Q${qi + 1}: ${m.g}/${m.t}">${qi + 1}</span>`;
     }
-    const ok = state.answers[qi] === q.answer;
+    const ok = q.void || isRight(q, state.answers[qi]);
     const given = state.answers[qi] !== undefined ? "ABCD"[state.answers[qi]] : "–";
-    return `<span class="cell ${ok ? "ok" : "no"}" title="Q${qi + 1}: you ${given}, answer ${"ABCD"[q.answer]}">${qi + 1}</span>`;
+    return `<span class="cell ${ok ? "ok" : "no"}" title="Q${qi + 1}: you ${given}, answer ${q.void ? "withdrawn" : answerText(q)}">${qi + 1}</span>`;
   }).join("");
   const payload = {
     n: state.name, c: ch.title, s: `${s}/${t}`,
@@ -736,24 +946,27 @@ function finish() {
       : isP2
         ? ch.questions.map((q, qi) => { const m = state.marks[qi]; return m ? m.g + "/" + m.t : "0/0"; }).join("-")
         : ch.questions.map((q, qi) => state.answers[qi] !== undefined ? "ABCD"[state.answers[qi]] : "-").join(""),
-    d: new Date().toISOString().slice(0, 16).replace("T", " ")
+    d: nowStamp()
   };
   const code = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-  localStorage.setItem("attempt:" + ch.id, JSON.stringify(isFRQ
+  const saved = isFRQ
     ? { score: s, total: t, date: payload.d, kind: "frq", answers: state.answers, results: state.frqResults }
     : isP2
       ? { score: s, total: t, date: payload.d, kind: "p2", answers: state.answers, marks: state.marks }
-      : { score: s, total: t, date: payload.d }));
-  cloudReportAsync({
-    n: payload.n, cls: (getAccess() || {}).cls || "", ch: ch.id, title: ch.title,
-    level: ch.level2 || "", paper: ch.paper || "MCQ",
-    s: s, t: t, detail: payload.a, date: payload.d
-  }).then(() => cloudMarkSynced(ch.id, payload.d))
-    .catch(err => console.warn("cloud report skipped:", err && err.message || err));
+      : { score: s, total: t, date: payload.d, kind: "mcq", answers: state.answers };
+  if (!state.reviewOnly) {                       // reviewing an old attempt must not overwrite or re-send it
+    localStorage.setItem("attempt:" + ch.id, JSON.stringify(saved));
+    cloudReportAsync({
+      n: payload.n, cls: (getAccess() || {}).cls || "", ch: ch.id, title: ch.title,
+      level: levelKeyOf(ch), paper: ch.paper || "MCQ",
+      s: s, t: t, detail: payload.a, date: payload.d, data: JSON.stringify(saved)
+    }).then(() => cloudMarkSynced(ch.id, payload.d))
+      .catch(err => console.warn("cloud report skipped:", err && err.message || err));
+  }
 
   app.innerHTML = `
   <header class="site small"><div class="inner">
-    <div class="back" onclick="goHome()">← All chapters</div>
+    <div class="back" onclick="goHome()">← ${isPastPaperLevel(ch.level2) ? "All sets" : "All chapters"}</div>
     <h1>${ch.title}</h1>
   </div></header>
   <main class="wrap">
