@@ -27,25 +27,44 @@ td.num { font-variant-numeric: tabular-nums; }
   <p>Generate class access codes so only the right class can open a chapter — then collect score codes and export a CSV for ManageBac.</p>
 </div></header>
 <main class="wrap">
-  <section class="card">
-    <div class="listhead">1 · Class access code</div>
-    <div class="row" style="margin-top:4px">
-      <input type="text" id="clsName" placeholder="Class name, e.g. DP2A" style="flex:1">
+  <section class="card" id="taskCard">
+    <div class="listhead">1 · Set tasks for a class</div>
+    <p class="footnote" style="margin-top:4px">Pick the class and tick the quizzes to open, then press <b>Open selected</b>. Every student of that class who signs in sees them under <b>My tasks</b> until you remove them here. Nothing else is open for them.</p>
+    <div class="row" style="margin-top:8px">
+      <select id="taskCls" style="min-width:230px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff"><option value="">— select a class —</option></select>
+      <button onclick="assignTasks(this)">Open selected for this class</button>
+      <button class="ghost" onclick="loadAssigned(this)">Refresh</button>
+      <span class="acc-status" id="asgStat" style="align-self:center"></span>
     </div>
+    <div class="err" id="asgErr"></div>
+    <div class="listhead">Currently open for this class</div>
+    <table id="asgTbl"><thead><tr><th>Quiz</th><th>Level · paper</th><th>Opened on</th><th></th></tr></thead>
+      <tbody><tr><td colspan="4" class="cnt">Select a class, then press Refresh.</td></tr></tbody></table>
     <div id="chList" style="margin-top:12px"></div>
     <div class="row">
-      <button onclick="genCode(false)">Generate code for selected chapters</button>
-      <button class="ghost" onclick="genCode(true)">Full access code</button>
+      <button onclick="assignTasks(this)">Open selected for this class</button>
+      <a class="tlink" style="align-self:center" onclick="clearTicks()">clear ticks</a>
+    </div>
+  </section>
+  <section class="card">
+    <div class="listhead">2 · Access code (optional)</div>
+    <p class="footnote" style="margin-top:4px">Students who sign in do not need a code — use section 1. A code for selected chapters still works as a second way to open them. The <b>all-chapters code is a teacher master code</b>: use it on your own computer or phone, never give it to students (it does not unlock anything for them).</p>
+    <div class="row" style="margin-top:6px">
+      <input type="text" id="clsName" placeholder="Class name for the code, e.g. DP2A" style="flex:1">
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button onclick="genCode(false)">Code for the selected chapters</button>
+      <button class="ghost" onclick="genCode(true)">Teacher master code (all chapters)</button>
     </div>
     <div class="err" id="genErr"></div>
     <div id="genOut" style="display:none">
-      <div class="listhead" style="margin-top:14px">Give this code to the class</div>
+      <div class="listhead" id="genTitle" style="margin-top:14px">Give this code to the class</div>
       <div class="codebox" id="genBox"></div>
       <div class="row"><button onclick="copyGen(this)">Copy code</button></div>
     </div>
   </section>
   <section class="card">
-    <div class="listhead">2 · Class roster</div>
+    <div class="listhead">3 · Class roster</div>
     <p class="footnote" style="margin-top:4px">Rosters were exported from ManageBac (51 students in 5 classes, G9 excluded). Pick a class — the student list loads automatically and is saved in this browser.</p>
     <div class="row" style="margin-top:8px">
       <select id="clsSel" style="flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff">
@@ -59,7 +78,7 @@ td.num { font-variant-numeric: tabular-nums; }
     </details>
   </section>
   <section class="card">
-    <div class="listhead">3 · Score collection</div>
+    <div class="listhead">4 · Score collection</div>
     <textarea class="ta" id="codes" placeholder="Student score codes, one per line..."></textarea>
     <div class="row">
       <button onclick="parseCodes()">Read codes</button>
@@ -76,7 +95,7 @@ td.num { font-variant-numeric: tabular-nums; }
     </tr></thead><tbody></tbody></table>
   </section>
   <section class="card" id="mbCard" style="display:none">
-    <div class="listhead">3 · ManageBac entry column</div>
+    <div class="listhead">4 · ManageBac entry column</div>
     <p class="footnote" style="margin-top:4px">This ManageBac version has <b>no CSV import</b> — grades are typed straight into the gradebook grid (auto-saved). The column below is already sorted in ManageBac row order, so you can go down the list cell by cell.</p>
     <div class="row">
       <select id="taskSel" style="padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff"></select>
@@ -91,7 +110,7 @@ td.num { font-variant-numeric: tabular-nums; }
     <textarea class="ta" id="colBox" style="min-height:120px; margin-top:10px" readonly></textarea>
   </section>
   <section class="card" id="cloudCard">
-    <div class="listhead">4 · Student answers &amp; summary (auto-reported)</div>
+    <div class="listhead">5 · Student answers &amp; summary (auto-reported)</div>
     <p class="footnote" style="margin-top:4px">Every finished attempt on the student site is reported here automatically — no score codes needed. For each student + quiz the <b>latest</b> submission is shown; press <b>Answers</b> to see how they did on each question.</p>
     <div class="row">
       <select id="cloudCls" style="min-width:130px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff"><option value="">All classes</option></select>
@@ -113,7 +132,7 @@ td.num { font-variant-numeric: tabular-nums; }
     <div id="cloudDash" style="overflow-x:auto"></div>
   </section>
   <section class="card" id="mapCard">
-    <div class="listhead">5 · Past paper sets — which session each set is</div>
+    <div class="listhead">6 · Past paper sets — which session each set is</div>
     <p class="footnote" style="margin-top:4px">Students only ever see <b>Set 1, Set 2 …</b>; the session is never shown on the student site. This table is for you only.</p>
     <div class="row">
       <select id="mapLevel" style="min-width:180px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff" onchange="renderPaperMap()">
@@ -125,7 +144,7 @@ td.num { font-variant-numeric: tabular-nums; }
     <table id="mapTbl"><thead><tr><th>Set</th><th>Session</th><th>Time zone</th><th>Chapter IDs</th></tr></thead><tbody></tbody></table>
   </section>
   <section class="card" id="accCard">
-    <div class="listhead">6 · Student accounts</div>
+    <div class="listhead">7 · Student accounts</div>
     <p class="footnote" style="margin-top:4px">Each student signs in with <b>the email on the roster</b> and a password. You create the accounts here — students cannot create their own. Every account starts with the password <b>123456</b>; the student is asked to choose their own password the first time they sign in (they can change it once). If a student forgets their password, press <b>reset</b> to put it back to 123456.</p>
     <div class="row">
       <select id="accCls" style="min-width:220px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff" onchange="renderAccounts()"><option value="">All classes</option></select>
@@ -162,10 +181,24 @@ function hash6(s) {
 function b64urlEnc(s) {
   return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
+const PREIB_TEACHER = [
+  { id: "preib-stoich", title: "Stoichiometry", paper: "MCQ", src: ["ch1"] },
+  { id: "preib-atoms", title: "Atomic Structure", paper: "MCQ", src: ["ch2"] },
+  { id: "preib-periodic", title: "Periodic Trends", paper: "MCQ", src: ["ch3"] },
+  { id: "preib-bonding", title: "Chemical Bonding", paper: "MCQ", src: ["ch4.1", "ch4.2", "ch4.3"] },
+  { id: "preib-frq-polarity", title: "Chemical Bonding · Molecular Polarity (VSEPR & Polarity)", paper: "FRQ", n: 10 }
+];
+function allQuizzes() {
+  const pre = PREIB_TEACHER.map(p => ({
+    id: p.id, title: p.title, level2: "Pre-IB", paper: p.paper,
+    questions: new Array(p.n || p.src.reduce((a, id) => a + ((QUIZ_DATA.chapters.find(c => c.id === id) || { questions: [] }).questions.length), 0))
+  }));
+  return pre.concat(QUIZ_DATA.chapters);
+}
 function buildChapterList() {
   const box = document.getElementById("chList");
   const byKey = {};
-  QUIZ_DATA.chapters.forEach(ch => {
+  allQuizzes().forEach(ch => {
     const key = levelPaperLabel(ch.level2 || "SL", ch.paper || "MCQ");
     (byKey[key] = byKey[key] || []).push(ch);
   });
@@ -178,6 +211,9 @@ function buildChapterList() {
         <label class="ck"><input type="checkbox" value="${ch.id}"> ${esc(ch.title)} <span class="cnt">(${ch.questions.length} Q)</span></label>`).join("")}
       </div>
     </div>`).join("");
+}
+function clearTicks() {
+  document.querySelectorAll("#chList input[type=checkbox]").forEach(b => { b.checked = false; });
 }
 function toggleGroup(link, gi) {
   const boxes = document.querySelector('.grp-body[data-g="' + gi + '"]').querySelectorAll('input[type="checkbox"]');
@@ -296,20 +332,21 @@ function copyAccounts(btn) {
   navigator.clipboard.writeText("Student\tEmail (sign-in)\tPassword\n" + lines.join("\n")).then(() => { btn.textContent = "Copied"; setTimeout(() => { btn.textContent = "Copy email + password list"; }, 1500); });
 }
 function genCode(full) {
-  const cls = document.getElementById("clsName").value.trim();
   const err = document.getElementById("genErr");
   const out = document.getElementById("genOut");
   err.textContent = "";
-  if (!cls) { err.textContent = "Please enter a class name first."; return; }
-  let allow;
+  let cls, allow;
   if (full) {
-    allow = ["*"];
+    cls = "TEACHER"; allow = ["*"];                // only a code with this class name unlocks everything (see app.js getAccess)
   } else {
+    cls = document.getElementById("clsName").value.trim();
+    if (!cls) { err.textContent = "Please enter a class name for the code first."; return; }
     allow = [...document.querySelectorAll("#chList input:checked")].map(cb => cb.value);
-    if (!allow.length) { err.textContent = "Tick at least one chapter for this class."; return; }
+    if (!allow.length) { err.textContent = "Tick at least one chapter for this code."; return; }
   }
   const code = "IBQ." + b64urlEnc(JSON.stringify({ c: cls, a: allow })) + "." + hash6(JSON.stringify({ c: cls, a: allow }));
   document.getElementById("genBox").textContent = code;
+  document.getElementById("genTitle").textContent = full ? "Teacher master code — keep this for your own devices only" : "Give this code to the class";
   out.style.display = "block";
 }
 function copyGen(btn) {
@@ -319,8 +356,88 @@ function copyGen(btn) {
     setTimeout(() => (btn.textContent = "Copy code"), 1500);
   });
 }
+/* ---- section 1: set tasks for a class (cloud table "assignments", one row per class + quiz) ---- */
+const taskCls = document.getElementById("taskCls");
+MB_CLASSES.forEach(c => { const o = document.createElement("option"); o.value = c.name; o.textContent = c.name; taskCls.appendChild(o); });
+let assignedRows = null;
+const fmtDay = v => { const d = new Date(v); return isNaN(d) ? String(v || "") : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+function asgFail(e) {
+  const code = e && e.code ? String(e.code) : "";
+  document.getElementById("asgErr").textContent = "Action failed: " + (code ? code + " — " : "") + ((e && (e.message || e)) || e) +
+    (code.indexOf("PGRST205") > -1 ? " (the assignments table has not been created yet — run cloudbase-assignments.sql in the SQL console)" : "");
+}
+async function fetchAssigned() {
+  const app = await tcbReady();
+  const r = await app.rdb().from("assignments").select("*").order("id", { ascending: true }).range(0, 999);
+  if (r.error) throw r.error;
+  return r.data || [];
+}
+function renderAssigned() {
+  const cls = taskCls.value;
+  const tb = document.querySelector("#asgTbl tbody");
+  const rows = cls && assignedRows ? assignedRows.filter(r => r.cls === cls) : [];
+  if (!cls) { tb.innerHTML = `<tr><td colspan="4" class="cnt">Select a class, then press Refresh.</td></tr>`; }
+  else if (!assignedRows) { tb.innerHTML = `<tr><td colspan="4" class="cnt">Press Refresh to load.</td></tr>`; }
+  else if (!rows.length) { tb.innerHTML = `<tr><td colspan="4" class="cnt">Nothing is open for this class yet.</td></tr>`; }
+  else {
+    tb.innerHTML = rows.map(r => {
+      const ch = allQuizzes().find(c => c.id === r.ch);
+      return `<tr><td>${esc(r.title || r.ch)}</td><td>${ch ? esc(levelPaperLabel(ch.level2 || "SL", ch.paper || "MCQ")) : '<span class="cnt">unknown quiz</span>'}</td>
+        <td>${esc(fmtDay(r.created_at))}</td><td><a class="tlink" onclick="removeAssigned(${+r.id}, this)">close</a></td></tr>`;
+    }).join("");
+  }
+  document.querySelectorAll("#chList input[type=checkbox]").forEach(cb => cb.closest("label").classList.toggle("assigned", rows.some(r => r.ch === cb.value)));
+  document.getElementById("asgStat").textContent = cls && assignedRows ? `${rows.length} quiz${rows.length === 1 ? "" : "zes"} open` : "";
+}
+async function loadAssigned(btn) {
+  document.getElementById("asgErr").textContent = "";
+  if (btn) { btn.disabled = true; btn.textContent = "Loading…"; }
+  try {
+    assignedRows = await fetchAssigned();
+    renderAssigned();
+  } catch (e) { asgFail(e); }
+  if (btn) { btn.disabled = false; btn.textContent = "Refresh"; }
+}
+async function assignTasks(btn) {
+  const errEl = document.getElementById("asgErr");
+  errEl.textContent = "";
+  const cls = taskCls.value;
+  if (!cls) { errEl.textContent = "Select a class first."; taskCls.focus(); return; }
+  const ids = [...document.querySelectorAll("#chList input:checked")].map(cb => cb.value);
+  if (!ids.length) { errEl.textContent = "Tick at least one quiz below."; return; }
+  btn.disabled = true; btn.textContent = "Opening…";
+  try {
+    const app = await tcbReady();
+    let added = 0;
+    for (const id of ids) {
+      const ch = allQuizzes().find(c => c.id === id);
+      const r = await app.rdb().from("assignments").insert({ cls: cls, ch: id, title: ch ? ch.title : id });
+      if (r.error) {
+        const dup = String(r.error.code || "") === "23505" || String(r.message || "").indexOf("duplicate") > -1 || String(r.message || "").indexOf("unique") > -1;
+        if (!dup) throw r.error;                   // already open for this class: nothing to do
+      } else added++;
+    }
+    assignedRows = await fetchAssigned();
+    renderAssigned();
+    document.getElementById("asgStat").textContent = `${added} newly opened · ${assignedRows.filter(r => r.cls === cls).length} open in total`;
+  } catch (e) { asgFail(e); }
+  btn.disabled = false; btn.textContent = "Open selected for this class";
+}
+async function removeAssigned(id, link) {
+  document.getElementById("asgErr").textContent = "";
+  link.textContent = "…";
+  try {
+    const app = await tcbReady();
+    const r = await app.rdb().from("assignments").delete().eq("id", id);
+    if (r.error) throw r.error;
+    assignedRows = await fetchAssigned();
+    renderAssigned();
+  } catch (e) { asgFail(e); link.textContent = "close"; }
+}
+taskCls.addEventListener("change", () => { renderAssigned(); document.getElementById("clsName").value = taskCls.value; });
 buildChapterList();
 renderPaperMap();
+setTimeout(loadAssigned, 0);   // deferred: the sign-in helpers below are defined later in this script
 
 function decode(code) {
   const txt = atob(code.trim());

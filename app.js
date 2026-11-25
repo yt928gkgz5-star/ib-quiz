@@ -223,7 +223,7 @@ async function backfillLocalAttempts() {
     if (!name) return;
     const byId = {};
     [QUIZ_DATA.chapters, PREIB_CH, PREIB_FRQ_CH].forEach(list => (list || []).forEach(c => { byId[c.id] = c; }));
-    const cls = (getAccess() || {}).cls || "";
+    const cls = currentClass();
     const pend = [];
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
@@ -299,7 +299,7 @@ function findChapter(id) {
   return QUIZ_DATA.chapters.find(x => x.id === id) || null;
 }
 function openAccount() { state.view = "account"; render(); window.scrollTo(0, 0); }
-function signOut() { setSession(null); state.name = ""; refreshOwned(); goHome(); }
+function signOut() { setSession(null); state.name = ""; refreshOwned(); refreshAssigned(); goHome(); }
 let pwJustChanged = false;
 function renderAccount() {
   const s = session();
@@ -375,10 +375,11 @@ async function accountSignIn() {
     }
     localStorage.setItem("accEmail", email);
     const name = rows[0].name || email;
-    setSession({ n: email, name: name, changed: !!rows[0].changed, t: Date.now() });
+    setSession({ n: email, name: name, changed: !!rows[0].changed, cls: rows[0].cls || "", t: Date.now() });
     localStorage.setItem("stuName", name);
     state.name = name;
     refreshOwned();
+    refreshAssigned();
     renderAccount();
   } catch (e) {
     errEl.textContent = "Sign-in failed: " + (e.message || e);
@@ -496,6 +497,52 @@ function refreshOwned() {
   }
 }
 
+/* ---------- tasks the teacher has assigned to the student's class ---------- */
+/* Rows of the cloud table "assignments": one per (class, quiz). Read after sign-in; they open the
+   quiz for every signed-in student of that class until the teacher removes the row. */
+let assignedIds = new Set(), assignedList = [];
+function refreshAssigned() {
+  assignedIds = new Set(); assignedList = [];
+  const me = session();
+  if (!me || !cloudOn()) return Promise.resolve();
+  return (async () => {
+    if (!me.cls) {                                  // sessions saved before the class was stored with them
+      const acc = await dbRows("students", { n: me.n });
+      if (!acc.length || !acc[0].cls) return;
+      me.cls = acc[0].cls;
+      setSession(me);
+    }
+    const rows = await dbRows("assignments", { cls: me.cls }).catch(() => []);
+    rows.slice().sort((x, y) => (+x.id || 0) - (+y.id || 0)).forEach(r => {
+      if (r.ch && !assignedIds.has(r.ch)) { assignedIds.add(r.ch); assignedList.push(r); }
+    });
+  })().then(() => { if (state.view === "home") render(); }).catch(() => {});
+}
+function openById(id) {
+  const ch = findChapter(id);
+  if (!ch || !isAllowed(ch)) { lockedClick(); return; }
+  state.browse = { level: levelKeyOf(ch), paper: ch.paper || "MCQ" };
+  const idx = activeChapters().indexOf(ch);
+  if (idx < 0) return;
+  openChapter(idx);
+}
+function tasksHTML() {
+  const head = `<div class="listhead">My tasks — set by your teacher</div>`;
+  if (!assignedList.length) return head + `<div class="card tasks"><div class="meta">No task has been set for your class yet. Check back after your lesson.</div></div>`;
+  const items = assignedList.map(r => {
+    const ch = findChapter(r.ch);
+    if (!ch) return "";
+    const when = fmtWhen(r.created_at || r.date || "");
+    const setOn = when ? " · set " + escHTML(when.slice(0, 10)) : "";
+    return `<div class="chapter task" onclick="openById('${escAttr(r.ch)}')">
+      <div class="chapter-main"><div class="chapter-no small">${escHTML(LEVEL_LABELS[levelKeyOf(ch)] || "")}</div>
+        <div><h3>${escHTML(ch.title)}</h3>
+          <div class="meta">${escHTML(paperLabel(levelKeyOf(ch), ch.paper || "MCQ"))} · ${ch.questions.length} questions${setOn}</div></div>
+      </div><div class="badge">Open</div></div>`;
+  }).join("");
+  return head + items;
+}
+
 /* ---------- access codes ---------- */
 function hash6(s) {
   let h = 5381;
@@ -521,10 +568,17 @@ function decodeAccess(code) {
   return JSON.parse(payload);
 }
 function getAccess() {
-  try { return JSON.parse(localStorage.getItem("access") || "null"); } catch (e) { return null; }
+  let a = null;
+  try { a = JSON.parse(localStorage.getItem("access") || "null"); } catch (e) { return null; }
+  // An all-chapters code only works for the teacher. Students used to get such codes; tasks are now
+  // assigned per class instead (teacher.html section 1), so an old one stored on a student's device unlocks nothing.
+  if (a && Array.isArray(a.allow) && a.allow[0] === "*" && a.cls !== "TEACHER") { localStorage.removeItem("access"); return null; }
+  return a;
 }
+function currentClass() { return (session() && session().cls) || (getAccess() || {}).cls || ""; }
 function isAllowed(ch) {
-  if (ownedIds.has(ch.id)) return true;        // this student already finished it: theirs to reopen
+  if (ownedIds.has(ch.id) || assignedIds.has(ch.id)) return true;   // finished earlier, or assigned to the class
+  if (ch._src && ch._src.some(id => assignedIds.has(id))) return true;
   const a = getAccess();
   if (!a) return false;
   if (a.allow[0] === "*") return true;
@@ -535,6 +589,10 @@ function applyCode() {
   const input = document.getElementById("accessInput");
   try {
     const obj = decodeAccess(input.value);
+    if (obj.a[0] === "*" && obj.c !== "TEACHER") {
+      alert("This all-chapters code is for the teacher only. Sign in with your school email instead: the tasks your teacher has assigned to your class are open for you.");
+      return;
+    }
     localStorage.setItem("access", JSON.stringify({ cls: obj.c, allow: obj.a }));
     render();
   } catch (e) {
@@ -585,9 +643,14 @@ function renderHome() {
   const total = group.reduce((s, x) => s + x.ch.questions.length, 0);
   const hasBank = group.length > 0;
   const acc = getAccess();
-  const accLine = session()
-    ? `Signed in as <b>${escHTML(session().name)}</b> · <a class="tlink" onclick="openAccount()">My history</a> · <a class="tlink" onclick="signOut()">sign out</a>`
-    : `Have an account? <a class="tlink" onclick="openAccount()">Sign in</a> to see every question you have done, on any device`;
+  const me = session();
+  const accLine = me
+    ? `Signed in as <b>${escHTML(me.name)}</b> · <a class="tlink" onclick="openAccount()">My history</a> · <a class="tlink" onclick="signOut()">sign out</a>`
+    : `<button class="btn-auth wide" onclick="openAccount()">Sign in with your school email</button>
+       <div class="meta" style="margin-top:6px">Sign in to open the tasks your teacher sets for your class and to keep your results.</div>`;
+  const authBar = me
+    ? `<div class="authbar"><button class="btn-auth light" onclick="openAccount()">My history</button><button class="btn-auth light" onclick="signOut()">Sign out</button></div>`
+    : `<div class="authbar"><button class="btn-auth" onclick="openAccount()">Sign in</button></div>`;
 
   const cards = group.map(x => {
     const ch = x.ch, i = x.i;
@@ -620,17 +683,28 @@ function renderHome() {
       </div>
     </div>`;
 
-  const accBar = `
-    <div class="codebar">
-      <div class="acc-status" id="accStatus">${acc
-        ? `Unlocked as class <b>${escHTML(acc.cls)}</b> · ${acc.allow[0] === "*" ? "all chapters" : acc.allow.length + " chapter(s)"} <a class="tlink" onclick="clearAccess()">switch code</a>`
-        : `Locked — enter the access code your teacher gave you`}</div>
-      <div class="acc-row">
+  const codeRow = open => open
+    ? `<div class="acc-row">
         <input type="text" id="accessInput" placeholder="Access code, e.g. IBQ.eyJjIjoiRFIyQSJ9.k3v2q" spellcheck="false">
         <button onclick="applyCode()">Unlock</button>
-      </div>
-      <div class="acc-status" id="accLine">${accLine}</div>
-    </div>`;
+      </div>`
+    : `<details class="codesmall"><summary>Or open a quiz with an access code</summary>
+        <div class="acc-row" style="margin-top:8px">
+          <input type="text" id="accessInput" placeholder="Access code, e.g. IBQ.eyJjIjoiRFIyQSJ9.k3v2q" spellcheck="false">
+          <button onclick="applyCode()">Unlock</button>
+        </div></details>`;
+  const accBar = `
+    <div class="codebar">
+      <div class="acc-status" id="accStatus">${me
+        ? `Signed in to <b>${escHTML(me.cls || "your class")}</b> — tasks your teacher has set for your class are open below`
+        : acc
+          ? `Unlocked as class <b>${escHTML(acc.cls)}</b> · ${acc.allow[0] === "*" ? "all chapters" : acc.allow.length + " chapter(s)"} <a class="tlink" onclick="clearAccess()">switch code</a>`
+          : `Locked — <b>sign in</b> to open the tasks your teacher sets, or enter an access code`}</div>
+      ${me ? "" : accLine}
+      ${me && !acc ? "" : codeRow(me || acc)}
+      ${me ? `<div class="accline" id="accLine">${accLine}</div>` : ""}
+    </div>
+    ${me ? `<div id="taskBox">${tasksHTML()}</div>` : ""}`;
 
   const paperTabs = (LEVEL_PAPERS[level] || PAPERS).map(p =>
     `<button class="tab${p === paper ? " on" : ""}" onclick="setPaper('${p}')">${paperLabel(level, p)}</button>`).join("");
@@ -639,9 +713,10 @@ function renderHome() {
   const heading = `${LEVEL_LABELS[level] || level} · ${paperLabel(level, paper)}`;
   app.innerHTML = `
   <header class="site"><div class="inner">
+    ${authBar}
     <div class="kicker">${QUIZ_DATA.course} · Topic practice &amp; past papers</div>
     <h1>Choose your level and paper</h1>
-    <p>Real IB questions, by topic or as complete papers. Instant marking, no login needed.</p>
+    <p>Real IB questions, by topic or as complete papers. Sign in with your school email to see the tasks your teacher sets.</p>
   </div></header>
   <main class="wrap">
     <div class="lvlrow">${levelTabs}</div>
@@ -835,8 +910,8 @@ function renderQuiz() {
 /* ---------- class roster (from access code) ---------- */
 function classRoster() {
   if (typeof MB_CLASSES === "undefined") return null;
-  const a = getAccess();
-  if (!a || !a.cls) return null;
+  const a = { cls: currentClass() };
+  if (!a.cls) return null;
   const norm = s => String(s || "").toLowerCase().replace(/[\s·._-]/g, "");
   return MB_CLASSES.find(c => norm(c.name) === norm(a.cls) || norm(c.name).indexOf(norm(a.cls)) > -1) || null;
 }
@@ -1018,7 +1093,7 @@ function finish() {
     localStorage.setItem("attempt:" + ch.id, JSON.stringify(saved));
     ownedIds.add(ch.id);
     cloudReportAsync({
-      n: payload.n, cls: (getAccess() || {}).cls || "", ch: ch.id, title: ch.title,
+      n: payload.n, cls: currentClass(), ch: ch.id, title: ch.title,
       level: levelKeyOf(ch), paper: ch.paper || "MCQ",
       s: s, t: t, detail: payload.a, date: payload.d, data: JSON.stringify(saved)
     }).then(() => cloudMarkSynced(ch.id, payload.d))
@@ -1061,5 +1136,6 @@ function copyCode(btn) {
 }
 
 refreshOwned();
+refreshAssigned();
 render();
 backfillLocalAttempts();
