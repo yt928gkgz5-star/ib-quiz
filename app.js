@@ -259,9 +259,12 @@ async function backfillLocalAttempts() {
    personalises this page (a static site cannot enforce anything server-side): it fixes the name used
    for submissions, refuses submissions under a name that already belongs to an account, and lists
    every attempt stored for that name, restoring the answers so they can be reviewed. */
-const PIN_SALT = "ib-quiz-student-accounts-v1";
 function cloudOn() { return typeof TCB_ENV !== "undefined" && !!TCB_ENV && typeof cloudbase !== "undefined"; }
-function session() { try { return JSON.parse(localStorage.getItem("session") || "null"); } catch (e) { return null; } }
+function session() {
+  let v = null;
+  try { v = JSON.parse(localStorage.getItem("session") || "null"); } catch (e) {}
+  return v && v.n && v.name ? v : null;       // older sessions without a display name are signed out
+}
 function setSession(v) { v ? localStorage.setItem("session", JSON.stringify(v)) : localStorage.removeItem("session"); }
 async function dbRows(table, filters) {
   const app = await tcbReady();
@@ -274,15 +277,8 @@ async function dbRows(table, filters) {
 }
 async function hasAccount(name) {
   if (!cloudOn() || !name) return false;
-  try { return (await dbRows("students", { n: name })).length > 0; }
-  catch (e) { return false; }                 // accounts table not created yet: do not block anyone
-}
-async function pinHash(name, pin) {
-  if (typeof crypto === "undefined" || !crypto.subtle) throw new Error("Accounts need the page to be opened over https.");
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey("raw", enc.encode(name + "|" + pin + "|" + PIN_SALT), "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: enc.encode(PIN_SALT), iterations: 60000, hash: "SHA-256" }, key, 256);
-  return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, "0")).join("");
+  try { return (await dbRows("students", { name: name })).length > 0; }
+  catch (e) { return false; }                 // accounts not available: do not block anyone
 }
 function nowStamp() {
   const d = new Date(), p = n => String(n).padStart(2, "0");
@@ -303,71 +299,115 @@ function findChapter(id) {
   return QUIZ_DATA.chapters.find(x => x.id === id) || null;
 }
 function openAccount() { state.view = "account"; render(); window.scrollTo(0, 0); }
-function signOut() { setSession(null); state.name = ""; goHome(); }
-function accountNameField() {
-  const rc = classRoster();
-  if (!rc) return `<input type="text" id="accName" placeholder="e.g. 12ib Alex" value="${escAttr(localStorage.getItem("stuName") || "")}">`;
-  const cur = localStorage.getItem("stuName") || "";
-  return `<select id="accName"><option value="">— choose your name —</option>${rc.students.map(x => {
-    const v = `${gradePrefix(rc.name)} ${x.en || x.n}`.trim();
-    return `<option value="${escAttr(v)}"${v === cur ? " selected" : ""}>${v}</option>`;
-  }).join("")}</select>`;
-}
+function signOut() { setSession(null); state.name = ""; refreshOwned(); goHome(); }
+let pwJustChanged = false;
 function renderAccount() {
   const s = session();
+  if (s) {
+    const askPassword = !s.changed && !s.pwSkip;
+    app.innerHTML = `
+  <header class="site small"><div class="inner">
+    <div class="back" onclick="goHome()">← Back</div>
+    <h1>My history</h1>
+    <p>Signed in as <b>${escHTML(s.name)}</b> <span class="meta">(${escHTML(s.n)})</span> · <a class="tlink" onclick="signOut()">sign out</a></p>
+  </div></header>
+  <main class="wrap">
+    ${pwJustChanged ? `<section class="card"><div class="meta"><b>Your password has been changed.</b> Use the new one next time you sign in.</div></section>` : ""}
+    ${askPassword ? `<section class="card">
+      <div class="listhead">Choose your own password</div>
+      <p class="footnote" style="margin-top:4px">Your account still uses the class starting password, which everyone knows. Pick a password of your own to keep your results private — you can do this <b>once</b>.</p>
+      <div class="namebar">
+        <input type="password" id="np1" autocomplete="new-password" placeholder="New password (4–32 characters)">
+        <input type="password" id="np2" autocomplete="new-password" placeholder="Repeat new password">
+        <button onclick="changePassword()">Save new password</button>
+        <a class="tlink" style="margin-left:8px" onclick="skipPasswordChange()">not now</a>
+      </div>
+      <div class="meta" id="pwErr" style="color:#9B2C2C; min-height:20px"></div>
+    </section>` : ""}
+    <section class="card"><div id="historyBox"><div class="meta">Loading your attempts…</div></div></section>
+  </main>`;
+    pwJustChanged = false;
+    loadHistory();
+    return;
+  }
   app.innerHTML = `
   <header class="site small"><div class="inner">
     <div class="back" onclick="goHome()">← Back</div>
-    <h1>${s ? "My history" : "Student sign-in"}</h1>
-    <p>${s ? `Signed in as <b>${escHTML(s.n)}</b> · <a class="tlink" onclick="signOut()">sign out</a>`
-           : "Choose the name your teacher gave you and enter your PIN."}</p>
+    <h1>Student sign-in</h1>
+    <p>Use the email address your teacher has on the class roster.</p>
   </div></header>
   <main class="wrap">
     <section class="card">
-      ${s ? `<div id="historyBox"><div class="meta">Loading your attempts…</div></div>` : `
-      <div class="namebar"><label for="accName">Your name</label>${accountNameField()}</div>
-      <div class="namebar"><label for="accPin">PIN</label>
-        <input type="password" id="accPin" inputmode="numeric" maxlength="8" placeholder="4–8 digits" onkeydown="if (event.key === 'Enter') accountSignIn(false)">
-        <button onclick="accountSignIn(false)">Sign in</button>
-        <button class="ghost" onclick="accountSignIn(true)">Create my account</button>
-      </div>
+      <div class="namebar"><label for="accEmail">Email</label>
+        <input type="email" id="accEmail" autocomplete="username" placeholder="name@example.com" value="${escAttr(localStorage.getItem("accEmail") || "")}" onkeydown="if (event.key === 'Enter') accountSignIn()"></div>
+      <div class="namebar"><label for="accPass">Password</label>
+        <input type="password" id="accPass" autocomplete="current-password" placeholder="Password" onkeydown="if (event.key === 'Enter') accountSignIn()">
+        <button onclick="accountSignIn()">Sign in</button></div>
       <div class="meta" id="accErr" style="color:#9B2C2C; min-height:20px"></div>
-      <div class="footnote" style="border:0; padding:6px 0 0">First time here? Enter your name and <b>choose your own PIN</b>, then press <b>Create my account</b>. After that, use the same PIN to sign in on any phone or computer. Keep your PIN private — anyone who knows it can sign in as you.</div>`}
+      <div class="footnote" style="border:0; padding:6px 0 0">Accounts are set up by your teacher. The starting password is <b>123456</b>; you will be asked to choose your own the first time you sign in. Keep your password private — anyone who knows it can sign in as you.</div>
     </section>
   </main>`;
 }
-async function accountSignIn(create) {
+async function accountSignIn() {
   const errEl = document.getElementById("accErr");
-  const nameEl = document.getElementById("accName"), pinEl = document.getElementById("accPin");
-  const name = (nameEl.value || "").trim(), pin = (pinEl.value || "").trim();
+  const emailEl = document.getElementById("accEmail"), passEl = document.getElementById("accPass");
+  const email = MB_email(emailEl.value), pass = passEl.value;
   errEl.textContent = "";
-  if (!name) { errEl.textContent = "Please choose your name."; nameEl.focus(); return; }
-  if (!/^\d{4,8}$/.test(pin)) { errEl.textContent = "Your PIN must be 4 to 8 digits."; pinEl.focus(); return; }
+  if (email.indexOf("@") < 1) { errEl.textContent = "Please enter your school email address."; emailEl.focus(); return; }
+  if (!pass) { errEl.textContent = "Please enter your password."; passEl.focus(); return; }
   if (!cloudOn()) { errEl.textContent = "Accounts are not available right now (cloud storage is off)."; return; }
   document.querySelectorAll("button").forEach(b => { b.disabled = true; });
   try {
     let rows = [];
-    try { rows = await dbRows("students", { n: name }); }
+    try { rows = await dbRows("students", { n: email }); }
     catch (e) {
-      errEl.textContent = "Accounts are not open yet — your teacher needs to switch them on (" + (e.code || e.message || e) + ").";
+      errEl.textContent = "Accounts are not available right now (" + (e.code || e.message || e) + ").";
       return;
     }
-    const h = await pinHash(name, pin);
-    if (rows.length) {
-      const row = rows.slice().sort((a, b) => String(a.created_at) < String(b.created_at) ? -1 : 1)[0];
-      if (row.pin !== h) { errEl.textContent = "That PIN does not match this name."; pinEl.focus(); return; }
-    } else {
-      if (!create) { errEl.textContent = "No account exists for " + name + " yet. Press “Create my account” the first time."; return; }
-      const app = await tcbReady();
-      const ins = await app.rdb().from("students").insert({ n: name, cls: (getAccess() || {}).cls || "", pin: h });
-      if (ins.error) throw ins.error;
+    if (!rows.length) {
+      errEl.textContent = "No account exists for " + email + ". Accounts are created by your teacher — check the address you typed (it is the one on the class roster).";
+      return;
     }
-    setSession({ n: name, t: Date.now() });
+    if (rows[0].pin !== await MB_pinHash(email, pass)) {
+      errEl.textContent = "That password does not match this account.";
+      passEl.focus();
+      return;
+    }
+    localStorage.setItem("accEmail", email);
+    const name = rows[0].name || email;
+    setSession({ n: email, name: name, changed: !!rows[0].changed, t: Date.now() });
     localStorage.setItem("stuName", name);
     state.name = name;
+    refreshOwned();
     renderAccount();
   } catch (e) {
     errEl.textContent = "Sign-in failed: " + (e.message || e);
+  } finally {
+    document.querySelectorAll("button").forEach(b => { b.disabled = false; });
+  }
+}
+function skipPasswordChange() {
+  setSession(Object.assign({}, session(), { pwSkip: true }));
+  renderAccount();
+}
+async function changePassword() {
+  const me = session(), errEl = document.getElementById("pwErr");
+  const p1 = document.getElementById("np1").value, p2 = document.getElementById("np2").value;
+  errEl.textContent = "";
+  if (!MB_validPassword(p1)) { errEl.textContent = "Use 4 to 32 characters: letters, digits or !@#$%^&*_.-"; return; }
+  if (p1 === MB_DEFAULT_PASSWORD) { errEl.textContent = "Choose a different password from the starting one."; return; }
+  if (p1 !== p2) { errEl.textContent = "The two passwords do not match."; document.getElementById("np2").focus(); return; }
+  if (!cloudOn()) { errEl.textContent = "Accounts are not available right now."; return; }
+  document.querySelectorAll("button").forEach(b => { b.disabled = true; });
+  try {
+    const app = await tcbReady();
+    const r = await app.rdb().from("students").update({ pin: await MB_pinHash(me.n, p1), changed: true }).eq("n", me.n);
+    if (r.error) throw r.error;
+    setSession({ n: me.n, name: me.name, changed: true, t: me.t });
+    pwJustChanged = true;
+    renderAccount();
+  } catch (e) {
+    errEl.textContent = "Could not save the new password: " + (e.message || e);
   } finally {
     document.querySelectorAll("button").forEach(b => { b.disabled = false; });
   }
@@ -380,7 +420,7 @@ async function loadHistory() {
     const app = await tcbReady();
     let skip = 0;
     while (true) {                                   // newest first, 1000 rows at a time
-      const r = await app.rdb().from("attempts").select("*").eq("n", me.n).order("id", { ascending: false }).range(skip, skip + 999);
+      const r = await app.rdb().from("attempts").select("*").eq("n", me.name).order("id", { ascending: false }).range(skip, skip + 999);
       if (r.error) throw r.error;
       const part = r.data || [];
       rows = rows.concat(part);
@@ -430,10 +470,30 @@ function reviewFromHistory(el) {
   state.browse = { level: ch.id.indexOf("preib-") === 0 ? "Pre-IB" : (ch.level2 || "SL"), paper: ch.paper || "MCQ" };
   const idx = activeChapters().indexOf(ch);
   if (idx < 0) { alert("This quiz could not be opened."); return; }
-  state = Object.assign({}, state, { view: "quiz", chapter: idx, name: session().n, answers: saved.answers || {},
+  state = Object.assign({}, state, { view: "quiz", chapter: idx, name: session().name, answers: saved.answers || {},
     marks: saved.marks || {}, frqResults: saved.results || null, page: 0, submitted: true, marking: false,
     reviewDate: r.date || "", reviewOnly: true });
   render(); window.scrollTo(0, 0);
+}
+
+/* ---------- quizzes the student has already finished ---------- */
+/* The teacher hands out a new access code for each task, so earlier chapters drop out of the code.
+   A quiz the student has finished (saved on this device, or on record for their account) stays
+   open for them; chapters that were never assigned and never done remain locked. */
+let ownedIds = new Set();
+function refreshOwned() {
+  ownedIds = new Set();
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.indexOf("attempt:") === 0) ownedIds.add(k.slice(8));
+  }
+  const me = session();
+  if (me && cloudOn()) {
+    dbRows("attempts", { n: me.name }).then(rows => {
+      rows.forEach(r => { if (r.ch) ownedIds.add(r.ch); });
+      if (state.view === "home") render();
+    }).catch(() => {});
+  }
 }
 
 /* ---------- access codes ---------- */
@@ -464,6 +524,7 @@ function getAccess() {
   try { return JSON.parse(localStorage.getItem("access") || "null"); } catch (e) { return null; }
 }
 function isAllowed(ch) {
+  if (ownedIds.has(ch.id)) return true;        // this student already finished it: theirs to reopen
   const a = getAccess();
   if (!a) return false;
   if (a.allow[0] === "*") return true;
@@ -525,7 +586,7 @@ function renderHome() {
   const hasBank = group.length > 0;
   const acc = getAccess();
   const accLine = session()
-    ? `Signed in as <b>${escHTML(session().n)}</b> · <a class="tlink" onclick="openAccount()">My history</a> · <a class="tlink" onclick="signOut()">sign out</a>`
+    ? `Signed in as <b>${escHTML(session().name)}</b> · <a class="tlink" onclick="openAccount()">My history</a> · <a class="tlink" onclick="signOut()">sign out</a>`
     : `Have an account? <a class="tlink" onclick="openAccount()">Sign in</a> to see every question you have done, on any device`;
 
   const cards = group.map(x => {
@@ -747,7 +808,7 @@ function renderQuiz() {
   <main class="wrap">
     ${state.submitted ? "" : `<div class="namebar">
       <label>Your name</label>
-      ${session() ? `<b>${escHTML(session().n)}</b><a class="tlink" style="margin-left:8px" onclick="signOut()">not you? sign out</a>` : nameField()}
+      ${session() ? `<b>${escHTML(session().name)}</b><a class="tlink" style="margin-left:8px" onclick="signOut()">not you? sign out</a>` : nameField()}
     </div>`}
     ${reviewBar}
     <div class="progress"><div class="progress-bar"><i id="progBar" style="width:${Math.round(100 * answered / total)}%"></i></div>
@@ -792,9 +853,8 @@ function nameField() {
     return `<input type="text" id="stuName" placeholder="e.g. 12ib Alex" value="${escAttr(state.name)}">`;
   }
   const cur = state.name || "";
-  const p = gradePrefix(rc.name);
-  const opts = rc.students.map(s => {
-    const v = `${p} ${s.en || s.n}`.trim();
+  const opts = rc.students.map(x => {
+    const v = MB_displayName(rc.name, x);
     return `<option value="${escAttr(v)}"${v === cur ? " selected" : ""}>${v}</option>`;
   }).join("");
   return `<select id="stuName">
@@ -846,10 +906,10 @@ function goHome() { state.view = "home"; render(); window.scrollTo(0, 0); }
 
 async function submitQuiz() {
   const el = document.getElementById("stuName");
-  if (session()) state.name = session().n;
+  if (session()) state.name = session().name;
   else if (el) state.name = el.value.trim();
   if (!state.name) { alert("Please enter your name first."); el && el.focus(); return; }
-  if (cloudOn() && (!session() || session().n !== state.name) && await hasAccount(state.name)) {
+  if (cloudOn() && (!session() || session().name !== state.name) && await hasAccount(state.name)) {
     alert(state.name + " already has an account. Sign in with your name and PIN to submit as " + state.name + ".");
     return;
   }
@@ -956,6 +1016,7 @@ function finish() {
       : { score: s, total: t, date: payload.d, kind: "mcq", answers: state.answers };
   if (!state.reviewOnly) {                       // reviewing an old attempt must not overwrite or re-send it
     localStorage.setItem("attempt:" + ch.id, JSON.stringify(saved));
+    ownedIds.add(ch.id);
     cloudReportAsync({
       n: payload.n, cls: (getAccess() || {}).cls || "", ch: ch.id, title: ch.title,
       level: levelKeyOf(ch), paper: ch.paper || "MCQ",
@@ -999,5 +1060,6 @@ function copyCode(btn) {
   });
 }
 
+refreshOwned();
 render();
 backfillLocalAttempts();

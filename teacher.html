@@ -126,13 +126,17 @@ td.num { font-variant-numeric: tabular-nums; }
   </section>
   <section class="card" id="accCard">
     <div class="listhead">6 · Student accounts</div>
-    <p class="footnote" style="margin-top:4px">A student creates their account the first time they sign in (name + a private PIN of their choice). Once a name has an account, nobody can submit under that name without the PIN. To reset a forgotten PIN, delete the row in the SQL console: <code>delete from students where n = '12ib Alex';</code> — the student then signs in again and creates a new PIN.</p>
+    <p class="footnote" style="margin-top:4px">Each student signs in with <b>the email on the roster</b> and a password. You create the accounts here — students cannot create their own. Every account starts with the password <b>123456</b>; the student is asked to choose their own password the first time they sign in (they can change it once). If a student forgets their password, press <b>reset</b> to put it back to 123456.</p>
     <div class="row">
-      <button onclick="loadAccounts(this)">Load accounts</button>
+      <select id="accCls" style="min-width:220px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff" onchange="renderAccounts()"><option value="">All classes</option></select>
+      <button onclick="loadAccounts(this)">Refresh list</button>
+      <button class="ghost" onclick="createAccounts(false, this)">Create missing accounts (this class)</button>
+      <button class="ghost" onclick="createAccounts(true, this)">Create missing accounts (all classes)</button>
+      <button class="ghost" onclick="copyAccounts(this)">Copy email + password list</button>
       <span class="acc-status" id="accStat"></span>
     </div>
     <div class="err" id="accErr"></div>
-    <table id="accTbl"><thead><tr><th>#</th><th>Student</th><th>Class code</th><th>Created</th></tr></thead><tbody></tbody></table>
+    <table id="accTbl"><thead><tr><th>#</th><th>Student</th><th>Email (sign-in)</th><th>Class</th><th>Password</th><th></th></tr></thead><tbody></tbody></table>
   </section>
 </main>
 <script src="tcb3.js"></script>
@@ -193,28 +197,103 @@ function renderPaperMap() {
   }).join("");
   document.getElementById("mapStat").textContent = `${list.length} sets`;
 }
+let accRows = [];
+const accCls = document.getElementById("accCls");
+MB_CLASSES.forEach(c => { const o = document.createElement("option"); o.value = c.name; o.textContent = c.name; accCls.appendChild(o); });
+async function fetchAccounts() {
+  const app = await tcbReady();
+  let skip = 0, all = [];
+  while (true) {
+    const r = await app.rdb().from("students").select("*").order("n", { ascending: true }).range(skip, skip + 999);
+    if (r.error) throw r.error;
+    const part = r.data || [];
+    all = all.concat(part);
+    if (part.length < 1000 || skip >= 9000) break;
+    skip += 1000;
+  }
+  return all;
+}
+function accFail(e) {
+  const code = e && e.code ? e.code : "";
+  document.getElementById("accErr").textContent = "Action failed: " + (code ? code + " — " : "") + ((e && (e.message || e)) || e) +
+    (String(code).indexOf("PGRST205") > -1 ? " (the students table has not been created yet)" : "") +
+    (String(code).indexOf("42703") > -1 || String(e && e.message).indexOf("column") > -1 ? " (the accounts table needs the extra columns — run cloudbase-accounts-v2.sql in the SQL console)" : "");
+}
+function renderAccounts() {
+  const byEmail = {};
+  accRows.forEach(r => { byEmail[MB_email(r.n)] = r; });
+  const classes = MB_CLASSES.filter(c => !accCls.value || c.name === accCls.value);
+  let i = 0, made = 0;
+  const html = [];
+  classes.forEach(c => c.students.forEach(st => {
+    const email = MB_email(st.email), row = byEmail[email];
+    i++;
+    if (row) made++;
+    html.push(`<tr><td>${i}</td><td>${esc(MB_displayName(c.name, st))}</td><td>${esc(email)}</td><td>${esc(c.name)}</td>
+      <td>${!row ? '<span class="cnt">no account yet</span>' : row.changed ? "own password set" : "<b>123456</b> (starting password)"}</td>
+      <td>${row ? `<a class="tlink" onclick="resetAccount('${esc(email)}', this)">reset to 123456</a>` : ""}</td></tr>`);
+  }));
+  document.querySelector("#accTbl tbody").innerHTML = html.join("");
+  document.getElementById("accStat").textContent = `${i} students in the roster · ${made} with an account`;
+}
 async function loadAccounts(btn) {
-  const errEl = document.getElementById("accErr"), statEl = document.getElementById("accStat");
-  errEl.textContent = "";
+  document.getElementById("accErr").textContent = "";
   btn.disabled = true; btn.textContent = "Loading…";
   try {
+    accRows = await fetchAccounts();
+    accRows = accRows.filter(r => MB_CLASSES.some(c => c.students.some(st => MB_email(st.email) === MB_email(r.n))));
+    renderAccounts();
+  } catch (e) { accFail(e); }
+  btn.disabled = false; btn.textContent = "Refresh list";
+}
+/* Create an account (email + 123456) for every roster student who does not have one yet. */
+async function createAccounts(allClasses, btn) {
+  const errEl = document.getElementById("accErr");
+  errEl.textContent = "";
+  btn.disabled = true;
+  try {
+    accRows = await fetchAccounts();
+    const have = new Set(accRows.map(r => MB_email(r.n)));
+    const todo = [];
+    if (!allClasses && !accCls.value) { document.getElementById("accStat").textContent = "Pick a class first, or use the all-classes button."; return; }
+    MB_CLASSES.filter(c => allClasses || c.name === accCls.value)
+      .forEach(c => c.students.forEach(st => { if (!have.has(MB_email(st.email))) todo.push({ c, st }); }));
+    if (!todo.length) { renderAccounts(); document.getElementById("accStat").textContent = "Every student in this selection already has an account."; return; }
     const app = await tcbReady();
-    let skip = 0, all = [];
-    while (true) {
-      const r = await app.rdb().from("students").select("*").order("created_at", { ascending: true }).range(skip, skip + 999);
-      if (r.error) throw r.error;
-      const part = r.data || [];
-      all = all.concat(part);
-      if (part.length < 1000 || skip >= 9000) break;
-      skip += 1000;
+    let done = 0;
+    for (const { c, st } of todo) {
+      const email = MB_email(st.email);
+      btn.textContent = `Creating ${done + 1} / ${todo.length}…`;
+      const r = await app.rdb().from("students").insert({ n: email, name: MB_displayName(c.name, st), cls: c.name, pin: await MB_pinHash(email, MB_DEFAULT_PASSWORD) });
+      if (r.error && String(r.error.code || "").indexOf("23505") < 0 && String(r.message || "").indexOf("duplicate") < 0) throw r.error;
+      done++;
     }
-    all.sort((a, b) => String(a.n).localeCompare(String(b.n)));
-    document.querySelector("#accTbl tbody").innerHTML = all.map((a, i) => `<tr><td>${i + 1}</td><td>${esc(a.n)}</td><td>${esc(a.cls || "")}</td><td>${fmtDate(a.created_at)}</td></tr>`).join("");
-    statEl.textContent = `${all.length} account${all.length === 1 ? "" : "s"} created`;
-  } catch (e) {
-    errEl.textContent = "Load failed: " + (e.code ? e.code + " — " : "") + (e.message || e) + (String(e.code || "").indexOf("PGRST205") > -1 ? " (the students table has not been created yet)" : "");
-  }
-  btn.disabled = false; btn.textContent = "Load accounts";
+    accRows = await fetchAccounts();
+    renderAccounts();
+    document.getElementById("accStat").textContent = `${done} account${done === 1 ? "" : "s"} created with the starting password 123456.`;
+  } catch (e) { accFail(e); }
+  btn.disabled = false; btn.textContent = allClasses ? "Create missing accounts (all classes)" : "Create missing accounts (this class)";
+}
+async function resetAccount(email, link) {
+  document.getElementById("accErr").textContent = "";
+  try {
+    const app = await tcbReady();
+    const r = await app.rdb().from("students").update({ pin: await MB_pinHash(email, MB_DEFAULT_PASSWORD), changed: false }).eq("n", email);
+    if (r.error) throw r.error;
+    accRows = await fetchAccounts();
+    renderAccounts();
+    document.getElementById("accStat").textContent = "Password of " + email + " reset to 123456.";
+  } catch (e) { accFail(e); }
+}
+function copyAccounts(btn) {
+  const byEmail = {};
+  accRows.forEach(r => { byEmail[MB_email(r.n)] = r; });
+  const lines = [];
+  MB_CLASSES.filter(c => !accCls.value || c.name === accCls.value).forEach(c => c.students.forEach(st => {
+    const email = MB_email(st.email), row = byEmail[email];
+    lines.push(`${MB_displayName(c.name, st)}\t${email}\t${row && row.changed ? "(own password already set)" : "123456"}`);
+  }));
+  navigator.clipboard.writeText("Student\tEmail (sign-in)\tPassword\n" + lines.join("\n")).then(() => { btn.textContent = "Copied"; setTimeout(() => { btn.textContent = "Copy email + password list"; }, 1500); });
 }
 function genCode(full) {
   const cls = document.getElementById("clsName").value.trim();
@@ -401,6 +480,8 @@ function matchStudent(name) {
   const t = norm(name);
   if (!t) return null;
   const pool = c ? c.students : [];
+  const exact = pool.find(s => norm(MB_displayName(c.name, s)) === t);   // "preib Tiger Zhao" must not match the other Tiger
+  if (exact) return exact;
   const t0 = t.replace(/^(preib|11ib|12ib)/, ""); // strip class prefix, e.g. "12ib alex" -> "alex"
   let hit = pool.find(s => norm(s.en) === t0 || norm(s.n) === t0 ||
     norm(s.n + s.en) === t0 || norm(s.en + s.n) === t0 || norm(s.en) === t || norm(s.n) === t);

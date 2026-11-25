@@ -337,3 +337,44 @@ const MB_CLASSES = [
   ]
  }
 ];
+
+/* ---- accounts & display names (shared by the student site and teacher.html) ---- */
+const MB_DEFAULT_PASSWORD = "123456";            // initial password of every pre-created account
+const PIN_SALT = "ib-quiz-student-accounts-v1";
+const SURNAME_PINYIN = { "张": "Zhang", "曾": "Zeng", "刘": "Liu", "赵": "Zhao", "田": "Tian", "黎": "Li" };
+
+/* Students share an English name in a few places (Sophie, Tiger, David). Only those get the
+   pinyin of their Chinese surname appended, so everyone else keeps the name already on record. */
+(function markDuplicateNames() {
+  const seen = {};
+  MB_CLASSES.forEach(c => c.students.forEach(st => {
+    const k = String(st.en || st.n).toLowerCase();
+    seen[k] = (seen[k] || 0) + 1;
+  }));
+  MB_CLASSES.forEach(c => c.students.forEach(st => {
+    const surname = SURNAME_PINYIN[String(st.n || "").charAt(0)];
+    st._surname = seen[String(st.en || st.n).toLowerCase()] > 1 ? (surname || "") : "";
+  }));
+})();
+
+function MB_gradePrefix(clsName) {
+  const s = String(clsName || "").toLowerCase();
+  if (s.includes("grade 12")) return "12ib";
+  if (s.includes("grade 11")) return "11ib";
+  if (s.includes("grade 10") || s.includes("pre-ib") || s.includes("preib")) return "preib";
+  return "";
+}
+/* "12ib Alex", or "preib Tiger Zhao" when the English name is shared */
+function MB_displayName(clsName, st) {
+  return `${MB_gradePrefix(clsName)} ${st.en || st.n}`.trim() + (st._surname ? " " + st._surname : "");
+}
+function MB_email(email) { return String(email || "").trim().toLowerCase(); }
+/* PBKDF2-SHA256; needs a secure (https) page */
+async function MB_pinHash(email, pin) {
+  if (typeof crypto === "undefined" || !crypto.subtle) throw new Error("Accounts need the page to be opened over https.");
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey("raw", enc.encode(MB_email(email) + "|" + pin + "|" + PIN_SALT), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: enc.encode(PIN_SALT), iterations: 60000, hash: "SHA-256" }, key, 256);
+  return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+function MB_validPassword(p) { return /^[0-9A-Za-z!@#$%^&*_.-]{4,32}$/.test(String(p || "")); }
