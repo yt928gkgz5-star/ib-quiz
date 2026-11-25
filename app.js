@@ -14,7 +14,27 @@ const PREIB_PAPERS = ["MCQ", "FRQ"];
 const LEVEL_PAPERS = { "Pre-IB": ["MCQ", "FRQ"], "SL": ["MCQ", "P2", "P1B"], "HL": ["MCQ", "P2", "P1B"], "SLP": ["MCQ", "P2"], "HLP": ["MCQ", "P2"] };
 const isPastPaperLevel = l => /P$/.test(l);
 const paperLabel = (level, p) => isPastPaperLevel(level) ? ({ "MCQ": "Paper 1", "P2": "Paper 2" }[p] || p) : p;
-if (typeof location !== "undefined" && location.hash === "#preib") state.browse.level = "Pre-IB";
+/* Bootstrap from URL: #preib/#topic/#sets/#p1b/#p2 preselect a level+paper tab;
+   ?code=IBQ... applies a class access code non-interactively (used when the quiz is
+   embedded in the ibchemni platform, which unlocks chapters for purchased courses). */
+(function bootFromUrl() {
+  if (typeof location === "undefined") return;
+  const h = location.hash;
+  if (h === "#preib") state.browse.level = "Pre-IB";
+  if (h === "#topic") { state.browse.level = "SL"; state.browse.paper = "MCQ"; }
+  if (h === "#sets")  { state.browse.level = "SLP"; state.browse.paper = "MCQ"; }
+  if (h === "#p1b")   { state.browse.level = "SL"; state.browse.paper = "P1B"; }
+  if (h === "#p2")    { state.browse.level = "SL"; state.browse.paper = "P2"; }
+  const q = new URLSearchParams(location.search).get("code");
+  if (q) {
+    try {
+      const obj = decodeAccess(q);
+      if (obj && Array.isArray(obj.a) && (obj.a[0] !== "*" || obj.c === "TEACHER")) {
+        localStorage.setItem("access", JSON.stringify({ cls: obj.c, allow: obj.a }));
+      }
+    } catch (e) { /* invalid code: ignore, the normal code box still works */ }
+  }
+})();
 
 /* ---------- Pre-IB topics (merged from the SL MCQ bank) ---------- */
 const PREIB_TOPICS = [
