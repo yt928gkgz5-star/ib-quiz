@@ -7,11 +7,11 @@ let state = { view: "home", chapter: null, name: "", answers: {}, marks: {}, pag
   browse: { level: "SL", paper: "MCQ" } };
 /* Level keys are internal and stable (access codes and saved attempts rely on them);
    LEVEL_LABELS is what students see. SLP / HLP = complete past papers shown as numbered sets. */
-const LEVELS = ["Pre-IB", "SL", "HL", "SLP", "HLP"];
-const LEVEL_LABELS = { "Pre-IB": "Pre-IB", "SL": "Topical SL", "HL": "Topical HL", "SLP": "SL Past Papers", "HLP": "HL Past Papers" };
+const LEVELS = ["Pre-IB", "SL", "HL", "SLP", "HLP", "TL"];
+const LEVEL_LABELS = { "Pre-IB": "Pre-IB", "SL": "Topical SL", "HL": "Topical HL", "SLP": "SL Past Papers", "HLP": "HL Past Papers", "TL": "Topical Learning" };
 const PAPERS = ["MCQ", "FRQ", "P1B"];
 const PREIB_PAPERS = ["MCQ", "FRQ"];
-const LEVEL_PAPERS = { "Pre-IB": ["MCQ", "FRQ"], "SL": ["MCQ", "P2"], "HL": ["MCQ", "P2"], "SLP": ["MCQ", "P2"], "HLP": ["MCQ", "P2"] };
+const LEVEL_PAPERS = { "Pre-IB": ["MCQ", "FRQ"], "SL": ["MCQ", "P2"], "HL": ["MCQ", "P2"], "SLP": ["MCQ", "P2"], "HLP": ["MCQ", "P2"], "TL": ["MCQ"] };
 const isPastPaperLevel = l => /P$/.test(l);
 const paperLabel = (level, p) => isPastPaperLevel(level) ? ({ "MCQ": "Paper 1", "P2": "Paper 2" }[p] || p) : p;
 /* Bootstrap from URL: #preib/#topic/#sets/#p1b/#p2 preselect a level+paper tab;
@@ -25,6 +25,7 @@ const paperLabel = (level, p) => isPastPaperLevel(level) ? ({ "MCQ": "Paper 1", 
   if (h === "#sets")  { state.browse.level = "SLP"; state.browse.paper = "MCQ"; }
   if (h === "#p1b")   { state.browse.level = "SL"; state.browse.paper = "P1B"; }
   if (h === "#p2")    { state.browse.level = "SL"; state.browse.paper = "P2"; }
+  if (h === "#tl")    state.browse.level = "TL";
   const q = new URLSearchParams(location.search).get("code");
   if (q) {
     try {
@@ -563,6 +564,7 @@ function refreshAssigned() {
   })().then(() => { if (state.view === "home") render(); }).catch(() => {});
 }
 function openById(id) {
+  if (id.indexOf("course:") === 0) { openCourse(id.slice(7)); return; }
   const ch = findChapter(id);
   if (!ch || !isAllowed(ch)) { lockedClick(); return; }
   state.browse = { level: levelKeyOf(ch), paper: ch.paper || "MCQ" };
@@ -575,9 +577,19 @@ function tasksHTML() {
   if (!assignedList.length) return head + `<div class="card tasks"><div class="meta">No task has been set for your class yet. Check back after your lesson.</div></div>`;
   const items = assignedList.map(r => {
     const ch = findChapter(r.ch);
-    if (!ch) return "";
     const when = fmtWhen(r.created_at || r.date || "");
     const setOn = when ? " · set " + escHTML(when.slice(0, 10)) : "";
+    if (!ch) {
+      if (r.ch.indexOf("course:") === 0) {
+        const c = COURSES.find(x => x.rule === r.ch);
+        if (c) return `<div class="chapter task" onclick="openById('${escAttr(r.ch)}')">
+          <div class="chapter-main"><div class="chapter-no small">Topical Learning</div>
+            <div><h3>${escHTML(c.title)}</h3>
+              <div class="meta">interactive self-study course${setOn}</div></div>
+          </div><div class="badge">Open</div></div>`;
+      }
+      return "";
+    }
     return `<div class="chapter task" onclick="openById('${escAttr(r.ch)}')">
       <div class="chapter-main"><div class="chapter-no small">${escHTML(LEVEL_LABELS[levelKeyOf(ch)] || "")}</div>
         <div><h3>${escHTML(ch.title)}</h3>
@@ -654,6 +666,70 @@ function lockedClick() {
   if (el) el.focus();
 }
 
+/* ---------- Topical Learning: interactive self-study courses ---------- */
+/* Courses live in topical-learning/<slug>/ next to this app and open in a new tab. The teacher
+   opens them for a whole class exactly like a quiz task: teacher.html section 1 writes an
+   assignments row with ch = "course:<id>"; nothing is open for students until that row exists. */
+const COURSES = [
+  { id: "tl-s32", rule: "course:tl-s32", path: "topical-learning/s32-organic-structure/index.html",
+    tag: "S3.2", title: "Organic Chemistry — Structure",
+    meta: "Self-study course · Cambridge Ch.11 backbone · 5 modules · 30 worked examples, practice sets, 42 checkpoint questions · Apple Pencil sketching" }
+];
+function courseAllowed(c) {
+  if (assignedIds.has(c.rule)) return true;                    // the class was given the course as a task
+  const a = getAccess();
+  return !!a && (a.allow[0] === "*" || a.allow.indexOf(c.rule) > -1);
+}
+function openCourse(id) {
+  const c = COURSES.find(x => x.id === id);
+  if (!c || !courseAllowed(c)) { lockedClick(); return; }
+  const base = location.pathname.replace(/\/[^\/]*$/, "/");   // folder this index.html lives in
+  window.open(base + c.path, "_blank");
+}
+function renderTLHome() {
+  const me = session(), acc = getAccess();
+  const authBar = me
+    ? `<div class="authbar"><button class="btn-auth light" onclick="openAccount()">My history</button><button class="btn-auth light" onclick="signOut()">Sign out</button></div>`
+    : `<div class="authbar"><button class="btn-auth" onclick="openAccount()">Sign in</button></div>`;
+  const levelTabs = LEVELS.map(l =>
+    `<button class="pill${l === "TL" ? " on" : ""}" onclick="setLevel('${l}')">${LEVEL_LABELS[l] || l}</button>`).join("");
+  const cards = COURSES.map(c => {
+    const allowed = courseAllowed(c);
+    return `<div class="chapter${allowed ? "" : " locked"}" onclick="${allowed ? `openCourse('${c.id}')` : "lockedClick()"}">
+      <div class="chapter-main">
+        <div class="chapter-no">${c.tag}</div>
+        <div>
+          <h3>${escHTML(c.title)}</h3>
+          <div class="meta">${escHTML(c.meta)}</div>
+        </div>
+      </div>
+      <div class="badge${allowed ? "" : " lock"}">${allowed ? "Open course" : "Locked"}</div>
+    </div>`;
+  }).join("");
+  const openHere = COURSES.filter(courseAllowed).length;
+  const accBar = `
+    <div class="codebar">
+      <div class="acc-status" id="accStatus">${me
+        ? `Signed in to <b>${escHTML(me.cls || "your class")}</b> — the courses your teacher has opened for your class appear below`
+        : `Locked — <b>sign in with your school email</b> and the courses your teacher opens for your class appear here`}</div>
+    </div>
+    ${me ? `<div id="taskBox">${tasksHTML()}</div>` : ""}`;
+  app.innerHTML = `
+  <header class="site"><div class="inner">
+    ${authBar}
+    <div class="kicker">${QUIZ_DATA.course} · Topic practice &amp; past papers</div>
+    <h1>Choose your level and paper</h1>
+    <p>Interactive self-study courses, opened for your class by your teacher. Real IB questions, by topic or as complete papers, stay in the other tabs.</p>
+  </div></header>
+  <main class="wrap">
+    <div class="lvlrow">${levelTabs}</div>
+    ${accBar}
+    <div class="listhead">Topical Learning · interactive courses</div>
+    ${cards}
+    <div class="footnote">Each course is a full self-study unit: fill-in concept builders, worked examples from the Cambridge Coursebook with instant feedback, practice sets, checkpoint quizzes and free-hand sketching with Apple Pencil.<br><a class="tlink" href="teacher.html">Teacher view</a></div>
+  </main>`;
+}
+
 function srcLabel(src) {
   if (/^Q\d+$/.test(src || "")) return "";               // past-paper sets: the number is already printed
   const m = /_(SL|HL)_(\w+?)_(\d{4})_Q(\d+)$/.exec(src || "");
@@ -680,6 +756,7 @@ function render() {
 }
 
 function renderHome() {
+  if (state.browse.level === "TL") { renderTLHome(); return; }
   const { level, paper } = state.browse;
   const all = activeChapters();
   const group = all.map((ch, i) => ({ ch, i }))

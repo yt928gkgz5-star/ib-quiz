@@ -167,8 +167,9 @@ td.num { font-variant-numeric: tabular-nums; }
 <script>
 let rows = [];
 const CH = {};
-const LEVEL_LABELS = { "Pre-IB": "Pre-IB", "SL": "Topical SL", "HL": "Topical HL", "SLP": "SL Past Papers", "HLP": "HL Past Papers" };
+const LEVEL_LABELS = { "Pre-IB": "Pre-IB", "SL": "Topical SL", "HL": "Topical HL", "SLP": "SL Past Papers", "HLP": "HL Past Papers", "TL": "Topical Learning" };
 function levelPaperLabel(level2, paper) {
+  if (level2 === "TL") return "Topical Learning · interactive course";
   const past = /P$/.test(level2 || "");
   return (LEVEL_LABELS[level2 || "SL"] || level2) + " · " + (past ? ({ "MCQ": "Paper 1", "P2": "Paper 2" }[paper] || paper) : paper);
 }
@@ -189,18 +190,25 @@ const PREIB_TEACHER = [
   { id: "preib-bonding", title: "Chemical Bonding", paper: "MCQ", src: ["ch4.1", "ch4.2", "ch4.3"] },
   { id: "preib-frq-polarity", title: "Chemical Bonding · Molecular Polarity (VSEPR & Polarity)", paper: "FRQ", n: 10 }
 ];
+/* Interactive self-study courses (COURSES in app.js must use the same ids). */
+const COURSES_TEACHER = [
+  { id: "course:tl-s32", title: "S3.2 Organic Chemistry — Structure (interactive course)" }
+];
 function allQuizzes() {
   const pre = PREIB_TEACHER.map(p => ({
     id: p.id, title: p.title, level2: "Pre-IB", paper: p.paper,
     questions: new Array(p.n || p.src.reduce((a, id) => a + ((QUIZ_DATA.chapters.find(c => c.id === id) || { questions: [] }).questions.length), 0))
   }));
-  return pre.concat(QUIZ_DATA.chapters);
+  /* Interactive Topical Learning courses — opened for a class like any quiz.
+     The ids must match COURSES in app.js ("course:<id>"). */
+  const courses = COURSES_TEACHER.map(c => ({ id: c.id, title: c.title, level2: "TL", paper: "MCQ", course: true, questions: [] }));
+  return pre.concat(courses).concat(QUIZ_DATA.chapters);
 }
 function buildChapterList() {
   const box = document.getElementById("chList");
   const byKey = {};
   allQuizzes().forEach(ch => {
-    const key = levelPaperLabel(ch.level2 || "SL", ch.paper || "MCQ");
+    const key = ch.course ? "Topical Learning · interactive courses" : levelPaperLabel(ch.level2 || "SL", ch.paper || "MCQ");
     (byKey[key] = byKey[key] || []).push(ch);
   });
   box.innerHTML = Object.keys(byKey).map((key, gi) => `
@@ -209,7 +217,7 @@ function buildChapterList() {
         <a class="tlink" style="font-weight:400; margin-left:10px" onclick="toggleGroup(this, ${gi})">select all / none</a></div>
       <div class="grp-body" data-g="${gi}">
       ${byKey[key].map(ch => `
-        <label class="ck"><input type="checkbox" value="${ch.id}"> ${esc(ch.title)} <span class="cnt">(${ch.questions.length} Q)</span></label>`).join("")}
+        <label class="ck"><input type="checkbox" value="${ch.id}"> ${esc(ch.title)} <span class="cnt">${ch.course ? "interactive course" : "(" + ch.questions.length + " Q)"}</span></label>`).join("")}
       </div>
     </div>`).join("");
 }
