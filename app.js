@@ -80,6 +80,9 @@ const PREIB_TOPICS = [
   { id: "preib-bond-mixed", title: "Bonding 5 · Mixed & Extension",         src: ["u2"], pick: BOND_MIXED },
   { id: "preib-bonding",  title: "Chemical Bonding · all 82 questions", src: ["u2"], retired: true }
 ];
+/* Chemical Bonding chapter hub: one entry that holds Learning + MCQ + FRQ together */
+const PREIB_BOND_HUB = { id: "preib-bond-hub", title: "Chemical Bonding", kind: "hub",
+  level: "Pre-IB", level2: "SL", paper: "MCQ", _src: ["u2"], questions: [] };
 const PREIB_CH = PREIB_TOPICS.map(t => ({
   id: t.id,
   title: t.title,
@@ -94,6 +97,7 @@ const PREIB_CH = PREIB_TOPICS.map(t => ({
     return t.pick ? c.questions.filter(q => t.pick.indexOf(q.src) > -1) : c.questions;
   })
 }));
+PREIB_CH.unshift(PREIB_BOND_HUB);
 
 /* ---------- Pre-IB interactive lessons (Cambridge S2 course) ---------- */
 const PREIB_LESSONS = [
@@ -105,8 +109,7 @@ const PREIB_LESSONS = [
   { part: "2.4",  title: "From Models to Materials", codes: "S2.4 · Ch. 9" }
 ];
 function preibLessonsHTML() {
-  return `<div class="sublabel" style="margin-top:14px">S2 Chemical Bonding — interactive lessons (Cambridge Ch. 6–9, inquiry-based)</div>
-  <div class="chapter lessoncard" onclick="location.href='topical-learning/s2-bonding/index.html#home'">
+  return `<div class="chapter lessoncard" onclick="openCourse('tl-s2bond')">
     <div class="chapter-main"><div class="chapter-no small">LEARN</div>
       <div><h3>Chemical Bonding — interactive course</h3>
         <div class="meta">Explore models · worked examples · checkpoint quizzes · progress saved on your device</div></div>
@@ -114,6 +117,75 @@ function preibLessonsHTML() {
   <details class="codesmall" style="margin-top:6px"><summary>Jump straight to a part</summary>
     <div class="lessonlist">${PREIB_LESSONS.map(l =>
       `<a class="lessonlink" href="topical-learning/s2-bonding/index.html#${l.part}">Part ${l.part} · ${l.title} <span class="meta">(${l.codes})</span></a>`).join("")}</div></details>`;
+}
+
+/* ---------- Chemical Bonding chapter hub (Pre-IB): Learning + MCQ + FRQ in one place ---------- */
+const BOND_MCQ_IDS = ["preib-bond-ionic", "preib-bond-cov", "preib-bond-imf", "preib-bond-metal", "preib-bond-mixed"];
+function hubChildCard(id, sub) {
+  const ch = findChapter(id);
+  if (!ch) return "";
+  const a = chapterStats(ch);
+  const allowed = isAllowed(ch);
+  const badge = !allowed ? `<div class="badge lock">Locked</div>`
+    : (a ? `<div class="badge done">${a.score}/${a.total}</div>` : `<div class="badge">${ch.questions.length || sub} </div>`);
+  return `<div class="chapter${allowed ? "" : " locked"}" onclick="${allowed ? `openById('${escAttr(id)}')` : "lockedClick()"}">
+    <div class="chapter-main"><div class="chapter-no small">${sub}</div>
+      <div><h3>${escHTML(ch.title)}</h3>
+        <div class="meta">${escHTML(paperLabel("Pre-IB", ch.paper || "MCQ"))} · ${ch.questions.length || ""}${a ? " · last score " + a.score + "/" + a.total : ""}</div></div>
+    </div>${badge}</div>`;
+}
+function preibHubCardHTML() {
+  return `<div class="chapter" onclick="openHub()" style="border:2px solid #4472C4">
+    <div class="chapter-main"><div class="chapter-no small">S2</div>
+      <div><h3>Chemical Bonding</h3>
+        <div class="meta">${PREIB_LESSONS.length} interactive lessons · ${BOND_MCQ_IDS.length} MCQ sets · ${PREIB_FRQ_CH.length} free-response sets — all in one chapter</div></div>
+    </div><div class="badge">Open</div></div>`;
+}
+function openHub() {
+  state = { view: "hub", browse: state.browse || { level: "Pre-IB", paper: "MCQ" },
+    name: localStorage.getItem("stuName") || "", answers: {}, marks: {}, sketches: {}, page: 0,
+    submitted: false, marking: false, frqResults: null, reviewDate: null };
+  render(); window.scrollTo(0, 0);
+}
+function renderHub() {
+  const course = COURSES.find(c => c.id === "tl-s2bond");
+  const learnAllowed = course && courseAllowed(course);
+  const learnCard = learnAllowed
+    ? `<div class="chapter lessoncard" onclick="openCourse('tl-s2bond')">
+        <div class="chapter-main"><div class="chapter-no small">LEARN</div>
+          <div><h3>Interactive course — all six parts</h3>
+            <div class="meta">Inquiry models · worked examples · checkpoint quizzes · Apple Pencil sketching</div></div>
+        </div><div class="badge">Open</div></div>
+       <details class="codesmall" open><summary>Or jump straight to a part</summary>
+        <div class="lessonlist">${PREIB_LESSONS.map(l =>
+          `<a class="lessonlink" href="topical-learning/s2-bonding/index.html#${l.part}">Part ${l.part} · ${l.title} <span class="meta">(${l.codes})</span></a>`).join("")}</div></details>`
+    : `<div class="chapter locked" onclick="lockedClick()">
+        <div class="chapter-main"><div class="chapter-no small">LEARN</div>
+          <div><h3>Interactive course — all six parts</h3>
+            <div class="meta">Opens once your teacher sets the course for your class</div></div>
+        </div><div class="badge lock">Locked</div></div>`;
+  const mcqCards = BOND_MCQ_IDS.map((id, i) => hubChildCard(id, "MCQ " + (i + 1))).join("");
+  const frqCards = PREIB_FRQ_CH.map((c, i) => hubChildCard(c.id, "FRQ " + (i + 1))).join("");
+  const me = session();
+  const authBar = me
+    ? `<div class="authbar"><button class="btn-auth light" onclick="openAccount()">My history</button><button class="btn-auth light" onclick="signOut()">Sign out</button></div>`
+    : `<div class="authbar"><button class="btn-auth" onclick="openAccount()">Sign in</button></div>`;
+  app.innerHTML = `
+  <header class="site small"><div class="inner">
+    ${authBar}
+    <div class="back" onclick="goHome()">← All chapters</div>
+    <h1>Chemical Bonding</h1>
+    <p>S2 · Cambridge Ch. 6–9 (SL) — learn it, drill it, then write about it</p>
+  </div></header>
+  <main class="wrap">
+    <div class="sublabel">1 · Learning — interactive lessons (Cambridge Ch. 6–9)</div>
+    ${learnCard}
+    <div class="sublabel" style="margin-top:18px">2 · MCQ — multiple-choice drills</div>
+    ${mcqCards}
+    <div class="sublabel" style="margin-top:18px">3 · Free response questions — Cambridge practice sets (teacher-marked)</div>
+    ${frqCards}
+    <div class="footnote">Work top to bottom: learn each part, take the matching MCQ set, then hand in the practice questions — your teacher marks the FRQ sets and records them on ManageBac.</div>
+  </main>`;
 }
 
 /* ---------- Pre-IB FRQ sets (auto-marked by keyword rubrics) ---------- */
@@ -846,6 +918,7 @@ function chapterStats(ch) {
 
 function render() {
   if (state.view === "home") renderHome();
+  else if (state.view === "hub") renderHub();
   else if (state.view === "quiz") renderQuiz();
   else if (state.view === "account") renderAccount();
   else renderResult();
@@ -922,13 +995,24 @@ function renderCourseHome(key) {
   const me = session(), fw = FRAMEWORK[key];
   const showWork = key !== "12";                                  // Grade 12 has practice only
   const practiceTag = key === "Pre-IB" ? "P1" : "SL";
-  const units = fw.units.map(u => `
+  const units = fw.units.map(u => {
+    if (u.hub) {
+      return `
+    <section class="card fwunit">
+      <div class="listhead">${escHTML(u.title)}</div>
+      <div class="fwrow"><div class="fwk">Chapter</div><div class="fwitems">
+        <a class="fwitem fwhub" onclick="openHub()"><b>Open Chemical Bonding</b><span>1 Learning · 2 MCQ (5 sets) · 3 Free response (6 sets) — all in one chapter</span></a>
+      </div></div>
+    </section>`;
+    }
+    return `
     <section class="card fwunit">
       <div class="listhead">${escHTML(u.title)}</div>
       ${showWork ? `<div class="fwrow"><div class="fwk">Courseware</div><div class="fwitems">${(u.courses || []).map(fwCourseItem).join("") || `<span class="meta">Interactive courseware — coming soon</span>`}</div></div>
       <div class="fwrow"><div class="fwk">Homework</div><div class="fwitems">${(u.homework || []).map(id => fwQuizChip(findChapter(id), (findChapter(id) || {}).title || id)).join("") || `<span class="meta">Homework sets — coming soon</span>`}</div></div>` : ""}
       <div class="fwrow"><div class="fwk">Past-paper practice</div><div class="fwitems">${fwPractice(practiceTag, u.practice.SL || [])}${fwPractice("HL", u.practice.HL || [])}</div></div>
-    </section>`).join("");
+    </section>`;
+  }).join("");
   app.innerHTML = `
   <header class="site"><div class="inner">
     <div class="authbar"><button class="btn-auth light" onclick="openAccount()">My history</button><button class="btn-auth light" onclick="signOut()">Sign out</button></div>
@@ -952,7 +1036,9 @@ function renderLevelHome() {
   const all = activeChapters();
   const group = all.map((ch, i) => ({ ch, i }))
     .filter(x => (x.ch.level2 || "SL") === (level === "Pre-IB" ? "SL" : level) && (x.ch.paper || "MCQ") === paper);
-  const total = group.reduce((s, x) => s + x.ch.questions.length, 0);
+  const listed = group.filter(x => !x.ch.retired && x.ch.kind !== "hub"
+      && !(level === "Pre-IB" && x.ch.id.indexOf("preib-bond-") === 0));
+  const total = listed.reduce((s, x) => s + x.ch.questions.length, 0);
   const hasBank = group.length > 0;
   const acc = getAccess();
   const me = session();
@@ -966,7 +1052,7 @@ function renderLevelHome() {
     ? `<div class="authbar"><button class="btn-auth light" onclick="openAccount()">My history</button><button class="btn-auth light" onclick="signOut()">Sign out</button></div>`
     : `<div class="authbar"><button class="btn-auth" onclick="openAccount()">Sign in</button></div>`;
 
-  const cards = group.filter(x => !x.ch.retired).map(x => {
+  const cards = listed.map(x => {
     const ch = x.ch, i = x.i;
     const a = chapterStats(ch);
     const allowed = isAllowed(ch);
@@ -1042,8 +1128,8 @@ function renderLevelHome() {
     <div class="lvlrow">${levelTabs}</div>
     <div class="tabs">${paperTabs}</div>
     ${accBar}
-    ${level === "Pre-IB" && paper === "MCQ" ? preibLessonsHTML() : ""}
     <div class="listhead">${heading}${hasBank ? ` · ${total} questions` : ""}</div>
+    ${level === "Pre-IB" ? preibHubCardHTML() : ""}
     ${cards}${emptyCard}
     <div class="footnote">Every question keeps its original diagram or structure, so figures stay exact. Your score is shown immediately after submission, with the correct answer for each question.${ENTRY ? "" : `<br><a class="tlink" href="teacher.html">Teacher view</a>`}</div>
   </main>`;

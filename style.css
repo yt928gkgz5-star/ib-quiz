@@ -278,3 +278,8 @@ header.site .inner { position: relative; padding-top: 46px; }
 .fwtag { font-weight: 700; font-size: 12px; color: var(--navy-deep); min-width: 26px; }
 .fwset { display: inline-flex; gap: 6px; }
 @media (max-width: 640px) { .fwk { flex-basis: 100%; padding-top: 0; } }
+
+/* Chemical Bonding chapter hub (Pre-IB) */
+.fwhub { border: 1.5px solid #4472C4; background: #F1F7FE; }
+.fwhub b { color: #0E2A47; }
+.sublabel { font-size: 13px; }

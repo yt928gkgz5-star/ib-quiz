@@ -15,8 +15,7 @@ const FRAMEWORK = {
     units: [
       { title: "Unit 1.1 · Structure Models of Matter",            practice: { SL: ["u1a"] }, courses: [], homework: [] },
       { title: "Unit 1.2 · Counting Particles & Stoichiometry",    practice: { SL: ["u1b"] }, courses: [], homework: [] },
-      { title: "Unit 2 · Bonding & Structure",                    practice: { SL: ["u2"] }, courses: ["tl-s2bond"],
-        homework: ["preib-frq-ionic", "preib-frq-lewis", "preib-frq-shapes", "preib-frq-imf", "preib-frq-metal", "preib-frq-polarity"] },
+      { title: "Unit 2 · Bonding & Structure",                    hub: true },
       { title: "Unit 3.1 · Periodicity",                          practice: { SL: ["u3"] }, courses: [], homework: [] }
     ],
     sets: false,
