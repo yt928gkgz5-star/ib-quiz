@@ -881,7 +881,7 @@ function renderTLHome() {
         ? `Signed in to <b>${escHTML(me.cls || "your class")}</b> — the courses your teacher has opened for your class appear below`
         : `Locked — <b>sign in with your school email</b> and the courses your teacher opens for your class appear here`}</div>
     </div>
-    ${me ? `<div id="taskBox">${tasksHTML()}</div>` : ""}`;
+    `;
   app.innerHTML = `
   <header class="site"><div class="inner">
     ${authBar}
@@ -1021,7 +1021,6 @@ function renderCourseHome(key) {
     <p>${escHTML(fw.hint)} Only what your teacher has opened for your class is clickable.</p>
   </div></header>
   <main class="wrap">
-    <div id="taskBox">${tasksHTML()}</div>
     ${units}
     ${fw.sets ? fwSetsHTML() : ""}
     ${(fw.extras || []).length ? fwExtrasHTML(fw.extras) : ""}
@@ -1108,7 +1107,7 @@ function renderLevelHome() {
       ${me && !acc ? "" : codeRow(me || acc)}
       ${me ? `<div class="accline" id="accLine">${accLine}</div>` : ""}
     </div>
-    ${me ? `<div id="taskBox">${tasksHTML()}</div>` : ""}`;
+    `;
 
   const paperTabs = (ENTRY ? ENTRY.papers : (LEVEL_PAPERS[level] || PAPERS)).map(p =>
     `<button class="tab${p === paper ? " on" : ""}" onclick="setPaper('${p}')">${paperLabel(level, p)}</button>`).join("");
