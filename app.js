@@ -11,7 +11,7 @@ const LEVELS = ["Pre-IB", "SL", "HL", "SLP", "HLP"];
 const LEVEL_LABELS = { "Pre-IB": "Pre-IB", "SL": "Topical SL", "HL": "Topical HL", "SLP": "SL Past Papers", "HLP": "HL Past Papers" };
 const PAPERS = ["MCQ", "FRQ", "P1B"];
 const PREIB_PAPERS = ["MCQ", "FRQ"];
-const LEVEL_PAPERS = { "Pre-IB": ["MCQ", "FRQ"], "SL": ["MCQ", "P2", "P1B"], "HL": ["MCQ", "P2", "P1B"], "SLP": ["MCQ", "P2"], "HLP": ["MCQ", "P2"] };
+const LEVEL_PAPERS = { "Pre-IB": ["MCQ", "FRQ"], "SL": ["MCQ", "P2"], "HL": ["MCQ", "P2"], "SLP": ["MCQ", "P2"], "HLP": ["MCQ", "P2"] };
 const isPastPaperLevel = l => /P$/.test(l);
 const paperLabel = (level, p) => isPastPaperLevel(level) ? ({ "MCQ": "Paper 1", "P2": "Paper 2" }[p] || p) : p;
 /* Bootstrap from URL: #preib/#topic/#sets/#p1b/#p2 preselect a level+paper tab;
@@ -46,7 +46,6 @@ const paperLabel = (level, p) => isPastPaperLevel(level) ? ({ "MCQ": "Paper 1", 
 const ENTRY_CFG = {
   "topical-units":   { levels: ["SL", "HL"], papers: ["MCQ", "P2"] },   // HL topical bank reorganised to units 2026-11-27
   "past-paper-sets": { levels: ["SLP", "HLP"], papers: ["MCQ", "P2"] },
-  "exam-sprint-p1b": { levels: ["SL", "HL"], papers: ["P1B"] },
   "exam-sprint-p2":  { levels: ["SL", "HL"], papers: ["P2"] }
 };
 const ENTRY = (() => {
