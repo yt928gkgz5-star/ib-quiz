@@ -10719,14 +10719,14 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_ns2sl-sq/q06.jpg",
-     "ms": "img/nq_ns2sl-sq/ms06.jpg",
+     "img": "img/nq_ns2sl/q06.jpg",
+     "ms": "img/nq_ns2sl/ms06.jpg",
      "src": "25M.1A.SL.TZ1.12"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns2sl-sq/q43.jpg",
-     "ms": "img/nq_ns2sl-sq/ms43.jpg",
+     "img": "img/nq_ns2sl/q43.jpg",
+     "ms": "img/nq_ns2sl/ms43.jpg",
      "src": "25N.2.SL.TZ3.2"
     }
    ]
@@ -10947,38 +10947,38 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_ns31sl-sq/q06.jpg",
-     "ms": "img/nq_ns31sl-sq/ms06.jpg",
+     "img": "img/nq_ns31sl/q06.jpg",
+     "ms": "img/nq_ns31sl/ms06.jpg",
      "src": "25M.1A.SL.TZ2.12"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns31sl-sq/q08.jpg",
-     "ms": "img/nq_ns31sl-sq/ms08.jpg",
+     "img": "img/nq_ns31sl/q08.jpg",
+     "ms": "img/nq_ns31sl/ms08.jpg",
      "src": "25M.1A.SL.TZ3.11"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns31sl-sq/q10.jpg",
-     "ms": "img/nq_ns31sl-sq/ms10.jpg",
+     "img": "img/nq_ns31sl/q10.jpg",
+     "ms": "img/nq_ns31sl/ms10.jpg",
      "src": "25M.1A.SL.TZ3.13"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns31sl-sq/q21.jpg",
-     "ms": "img/nq_ns31sl-sq/ms21.jpg",
+     "img": "img/nq_ns31sl/q21.jpg",
+     "ms": "img/nq_ns31sl/ms21.jpg",
      "src": "22N.1A.SL.TZ0.7"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns31sl-sq/q25.jpg",
-     "ms": "img/nq_ns31sl-sq/ms25.jpg",
+     "img": "img/nq_ns31sl/q25.jpg",
+     "ms": "img/nq_ns31sl/ms25.jpg",
      "src": "22M.1A.SL.TZ2.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns31sl-sq/q32.jpg",
-     "ms": "img/nq_ns31sl-sq/ms32.jpg",
+     "img": "img/nq_ns31sl/q32.jpg",
+     "ms": "img/nq_ns31sl/ms32.jpg",
      "src": "25N.2.SL.TZ3.1"
     }
    ]
@@ -11205,38 +11205,38 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_nr1sl-sq/q19.jpg",
-     "ms": "img/nq_nr1sl-sq/ms19.jpg",
+     "img": "img/nq_nr1sl/q19.jpg",
+     "ms": "img/nq_nr1sl/ms19.jpg",
      "src": "23N.1A.SL.TZ2.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr1sl-sq/q29.jpg",
-     "ms": "img/nq_nr1sl-sq/ms29.jpg",
+     "img": "img/nq_nr1sl/q29.jpg",
+     "ms": "img/nq_nr1sl/ms29.jpg",
      "src": "25N.1A.SL.TZ3.16"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr1sl-sq/q31.jpg",
-     "ms": "img/nq_nr1sl-sq/ms31.jpg",
+     "img": "img/nq_nr1sl/q31.jpg",
+     "ms": "img/nq_nr1sl/ms31.jpg",
      "src": "25N.2.SL.TZ3.4"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr1sl-sq/q37.jpg",
-     "ms": "img/nq_nr1sl-sq/ms37.jpg",
+     "img": "img/nq_nr1sl/q37.jpg",
+     "ms": "img/nq_nr1sl/ms37.jpg",
      "src": "26M.1A.SL.TZ3.16"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr1sl-sq/q39.jpg",
-     "ms": "img/nq_nr1sl-sq/ms39.jpg",
+     "img": "img/nq_nr1sl/q39.jpg",
+     "ms": "img/nq_nr1sl/ms39.jpg",
      "src": "26M.2.SL.TZ2.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr1sl-sq/q40.jpg",
-     "ms": "img/nq_nr1sl-sq/ms40.jpg",
+     "img": "img/nq_nr1sl/q40.jpg",
+     "ms": "img/nq_nr1sl/ms40.jpg",
      "src": "26M.2.SL.TZ3.4"
     }
    ]
@@ -11379,44 +11379,44 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_nr23sl-sq/q16.jpg",
-     "ms": "img/nq_nr23sl-sq/ms16.jpg",
+     "img": "img/nq_nr23sl/q16.jpg",
+     "ms": "img/nq_nr23sl/ms16.jpg",
      "src": "19N.1A.SL.TZ0.19"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr23sl-sq/q17.jpg",
-     "ms": "img/nq_nr23sl-sq/ms17.jpg",
+     "img": "img/nq_nr23sl/q17.jpg",
+     "ms": "img/nq_nr23sl/ms17.jpg",
      "src": "25M.2.SL.TZ1.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr23sl-sq/q18.jpg",
-     "ms": "img/nq_nr23sl-sq/ms18.jpg",
+     "img": "img/nq_nr23sl/q18.jpg",
+     "ms": "img/nq_nr23sl/ms18.jpg",
      "src": "25M.2.SL.TZ2.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr23sl-sq/q19.jpg",
-     "ms": "img/nq_nr23sl-sq/ms19.jpg",
+     "img": "img/nq_nr23sl/q19.jpg",
+     "ms": "img/nq_nr23sl/ms19.jpg",
      "src": "25M.2.SL.TZ3.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr23sl-sq/q20.jpg",
-     "ms": "img/nq_nr23sl-sq/ms20.jpg",
+     "img": "img/nq_nr23sl/q20.jpg",
+     "ms": "img/nq_nr23sl/ms20.jpg",
      "src": "24M.2.SL.TZ1.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr23sl-sq/q24.jpg",
-     "ms": "img/nq_nr23sl-sq/ms24.jpg",
+     "img": "img/nq_nr23sl/q24.jpg",
+     "ms": "img/nq_nr23sl/ms24.jpg",
      "src": "25N.2.SL.TZ1.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr23sl-sq/q27.jpg",
-     "ms": "img/nq_nr23sl-sq/ms27.jpg",
+     "img": "img/nq_nr23sl/q27.jpg",
+     "ms": "img/nq_nr23sl/ms27.jpg",
      "src": "26M.1A.SL.TZ2.22"
     }
    ]
@@ -11667,32 +11667,32 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_nr31sl-sq/q30.jpg",
-     "ms": "img/nq_nr31sl-sq/ms30.jpg",
+     "img": "img/nq_nr31sl/q30.jpg",
+     "ms": "img/nq_nr31sl/ms30.jpg",
      "src": "25M.2.SL.TZ2.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31sl-sq/q31.jpg",
-     "ms": "img/nq_nr31sl-sq/ms31.jpg",
+     "img": "img/nq_nr31sl/q31.jpg",
+     "ms": "img/nq_nr31sl/ms31.jpg",
      "src": "25M.2.SL.TZ2.4"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31sl-sq/q35.jpg",
-     "ms": "img/nq_nr31sl-sq/ms35.jpg",
+     "img": "img/nq_nr31sl/q35.jpg",
+     "ms": "img/nq_nr31sl/ms35.jpg",
      "src": "25N.2.SL.TZ3.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31sl-sq/q42.jpg",
-     "ms": "img/nq_nr31sl-sq/ms42.jpg",
+     "img": "img/nq_nr31sl/q42.jpg",
+     "ms": "img/nq_nr31sl/ms42.jpg",
      "src": "26M.2.SL.TZ1.4"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31sl-sq/q43.jpg",
-     "ms": "img/nq_nr31sl-sq/ms43.jpg",
+     "img": "img/nq_nr31sl/q43.jpg",
+     "ms": "img/nq_nr31sl/ms43.jpg",
      "src": "26M.2.SL.TZ2.1"
     }
    ]
@@ -11949,50 +11949,50 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_nr32sl-sq/q03.jpg",
-     "ms": "img/nq_nr32sl-sq/ms03.jpg",
+     "img": "img/nq_nr32sl/q03.jpg",
+     "ms": "img/nq_nr32sl/ms03.jpg",
      "src": "25M.1A.SL.TZ2.28"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr32sl-sq/q16.jpg",
-     "ms": "img/nq_nr32sl-sq/ms16.jpg",
+     "img": "img/nq_nr32sl/q16.jpg",
+     "ms": "img/nq_nr32sl/ms16.jpg",
      "src": "23N.1A.SL.TZ1.24"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr32sl-sq/q28.jpg",
-     "ms": "img/nq_nr32sl-sq/ms28.jpg",
+     "img": "img/nq_nr32sl/q28.jpg",
+     "ms": "img/nq_nr32sl/ms28.jpg",
      "src": "EXM.1B.SL.TZ0.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr32sl-sq/q29.jpg",
-     "ms": "img/nq_nr32sl-sq/ms29.jpg",
+     "img": "img/nq_nr32sl/q29.jpg",
+     "ms": "img/nq_nr32sl/ms29.jpg",
      "src": "25M.2.SL.TZ3.6"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr32sl-sq/q30.jpg",
-     "ms": "img/nq_nr32sl-sq/ms30.jpg",
+     "img": "img/nq_nr32sl/q30.jpg",
+     "ms": "img/nq_nr32sl/ms30.jpg",
      "src": "24M.2.SL.TZ2.6"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr32sl-sq/q31.jpg",
-     "ms": "img/nq_nr32sl-sq/ms31.jpg",
+     "img": "img/nq_nr32sl/q31.jpg",
+     "ms": "img/nq_nr32sl/ms31.jpg",
      "src": "23N.2.SL.TZ1.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr32sl-sq/q32.jpg",
-     "ms": "img/nq_nr32sl-sq/ms32.jpg",
+     "img": "img/nq_nr32sl/q32.jpg",
+     "ms": "img/nq_nr32sl/ms32.jpg",
      "src": "23N.2.SL.TZ1.101"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr32sl-sq/q47.jpg",
-     "ms": "img/nq_nr32sl-sq/ms47.jpg",
+     "img": "img/nq_nr32sl/q47.jpg",
+     "ms": "img/nq_nr32sl/ms47.jpg",
      "src": "26M.2.SL.TZ3.4"
     }
    ]
@@ -12189,8 +12189,8 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_norgstsl-sq/q14.jpg",
-     "ms": "img/nq_norgstsl-sq/ms14.jpg",
+     "img": "img/nq_norgstsl/q14.jpg",
+     "ms": "img/nq_norgstsl/ms14.jpg",
      "src": "23N.2.SL.TZ1.1"
     }
    ]
@@ -12411,92 +12411,92 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q04.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms04.jpg",
+     "img": "img/nq_norgrxsl/q04.jpg",
+     "ms": "img/nq_norgrxsl/ms04.jpg",
      "src": "25M.1A.SL.TZ2.10"
     },
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q15.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms15.jpg",
+     "img": "img/nq_norgrxsl/q15.jpg",
+     "ms": "img/nq_norgrxsl/ms15.jpg",
      "src": "22M.1A.SL.TZ1.27"
     },
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q20.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms20.jpg",
+     "img": "img/nq_norgrxsl/q20.jpg",
+     "ms": "img/nq_norgrxsl/ms20.jpg",
      "src": "21M.1A.SL.TZ1.26"
     },
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q31.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms31.jpg",
+     "img": "img/nq_norgrxsl/q31.jpg",
+     "ms": "img/nq_norgrxsl/ms31.jpg",
      "src": "25M.2.SL.TZ2.4"
     },
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q32.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms32.jpg",
+     "img": "img/nq_norgrxsl/q32.jpg",
+     "ms": "img/nq_norgrxsl/ms32.jpg",
      "src": "24M.2.SL.TZ2.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q33.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms33.jpg",
+     "img": "img/nq_norgrxsl/q33.jpg",
+     "ms": "img/nq_norgrxsl/ms33.jpg",
      "src": "23N.2.SL.TZ1.101"
     },
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q34.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms34.jpg",
+     "img": "img/nq_norgrxsl/q34.jpg",
+     "ms": "img/nq_norgrxsl/ms34.jpg",
      "src": "23N.2.SL.TZ2.101"
     },
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q35.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms35.jpg",
+     "img": "img/nq_norgrxsl/q35.jpg",
+     "ms": "img/nq_norgrxsl/ms35.jpg",
      "src": "22N.2.SL.TZ0.4"
     },
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q36.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms36.jpg",
+     "img": "img/nq_norgrxsl/q36.jpg",
+     "ms": "img/nq_norgrxsl/ms36.jpg",
      "src": "22M.2.SL.TZ1.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q37.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms37.jpg",
+     "img": "img/nq_norgrxsl/q37.jpg",
+     "ms": "img/nq_norgrxsl/ms37.jpg",
      "src": "22M.2.HL.TZ1.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q38.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms38.jpg",
+     "img": "img/nq_norgrxsl/q38.jpg",
+     "ms": "img/nq_norgrxsl/ms38.jpg",
      "src": "22M.2.HL.TZ1.6"
     },
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q39.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms39.jpg",
+     "img": "img/nq_norgrxsl/q39.jpg",
+     "ms": "img/nq_norgrxsl/ms39.jpg",
      "src": "22M.2.HL.TZ2.8"
     },
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q40.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms40.jpg",
+     "img": "img/nq_norgrxsl/q40.jpg",
+     "ms": "img/nq_norgrxsl/ms40.jpg",
      "src": "21N.2.SL.TZ0.7"
     },
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q41.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms41.jpg",
+     "img": "img/nq_norgrxsl/q41.jpg",
+     "ms": "img/nq_norgrxsl/ms41.jpg",
      "src": "21M.2.SL.TZ1.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_norgrxsl-sq/q50.jpg",
-     "ms": "img/nq_norgrxsl-sq/ms50.jpg",
+     "img": "img/nq_norgrxsl/q50.jpg",
+     "ms": "img/nq_norgrxsl/ms50.jpg",
      "src": "25N.2.SL.TZ3.4"
     }
    ]
@@ -12717,32 +12717,32 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_ns2hl-sq/q05.jpg",
-     "ms": "img/nq_ns2hl-sq/ms05.jpg",
+     "img": "img/nq_ns2hl/q05.jpg",
+     "ms": "img/nq_ns2hl/ms05.jpg",
      "src": "25M.1A.HL.TZ2.10"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns2hl-sq/q29.jpg",
-     "ms": "img/nq_ns2hl-sq/ms29.jpg",
+     "img": "img/nq_ns2hl/q29.jpg",
+     "ms": "img/nq_ns2hl/ms29.jpg",
      "src": "24M.2.HL.TZ2.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns2hl-sq/q33.jpg",
-     "ms": "img/nq_ns2hl-sq/ms33.jpg",
+     "img": "img/nq_ns2hl/q33.jpg",
+     "ms": "img/nq_ns2hl/ms33.jpg",
      "src": "25N.1A.HL.TZ3.11"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns2hl-sq/q34.jpg",
-     "ms": "img/nq_ns2hl-sq/ms34.jpg",
+     "img": "img/nq_ns2hl/q34.jpg",
+     "ms": "img/nq_ns2hl/ms34.jpg",
      "src": "25N.2.HL.TZ1.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns2hl-sq/q36.jpg",
-     "ms": "img/nq_ns2hl-sq/ms36.jpg",
+     "img": "img/nq_ns2hl/q36.jpg",
+     "ms": "img/nq_ns2hl/ms36.jpg",
      "src": "26M.1A.HL.TZ2.10"
     }
    ]
@@ -12963,32 +12963,32 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_ns31s1hl-sq/q26.jpg",
-     "ms": "img/nq_ns31s1hl-sq/ms26.jpg",
+     "img": "img/nq_ns31s1hl/q26.jpg",
+     "ms": "img/nq_ns31s1hl/ms26.jpg",
      "src": "19N.1A.HL.TZ0.8"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns31s1hl-sq/q27.jpg",
-     "ms": "img/nq_ns31s1hl-sq/ms27.jpg",
+     "img": "img/nq_ns31s1hl/q27.jpg",
+     "ms": "img/nq_ns31s1hl/ms27.jpg",
      "src": "25M.2.HL.TZ1.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns31s1hl-sq/q28.jpg",
-     "ms": "img/nq_ns31s1hl-sq/ms28.jpg",
+     "img": "img/nq_ns31s1hl/q28.jpg",
+     "ms": "img/nq_ns31s1hl/ms28.jpg",
      "src": "24M.2.HL.TZ1.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns31s1hl-sq/q29.jpg",
-     "ms": "img/nq_ns31s1hl-sq/ms29.jpg",
+     "img": "img/nq_ns31s1hl/q29.jpg",
+     "ms": "img/nq_ns31s1hl/ms29.jpg",
      "src": "23N.2.HL.TZ1.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns31s1hl-sq/q38.jpg",
-     "ms": "img/nq_ns31s1hl-sq/ms38.jpg",
+     "img": "img/nq_ns31s1hl/q38.jpg",
+     "ms": "img/nq_ns31s1hl/ms38.jpg",
      "src": "26M.2.HL.TZ2.7"
     }
    ]
@@ -13203,26 +13203,26 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_nr1hl-sq/q07.jpg",
-     "ms": "img/nq_nr1hl-sq/ms07.jpg",
+     "img": "img/nq_nr1hl/q07.jpg",
+     "ms": "img/nq_nr1hl/ms07.jpg",
      "src": "25M.1A.HL.TZ3.23"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr1hl-sq/q16.jpg",
-     "ms": "img/nq_nr1hl-sq/ms16.jpg",
+     "img": "img/nq_nr1hl/q16.jpg",
+     "ms": "img/nq_nr1hl/ms16.jpg",
      "src": "24M.2.HL.TZ1.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr1hl-sq/q24.jpg",
-     "ms": "img/nq_nr1hl-sq/ms24.jpg",
+     "img": "img/nq_nr1hl/q24.jpg",
+     "ms": "img/nq_nr1hl/ms24.jpg",
      "src": "22M.1A.HL.TZ2.15"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr1hl-sq/q34.jpg",
-     "ms": "img/nq_nr1hl-sq/ms34.jpg",
+     "img": "img/nq_nr1hl/q34.jpg",
+     "ms": "img/nq_nr1hl/ms34.jpg",
      "src": "26M.1A.HL.TZ2.30"
     }
    ]
@@ -13437,68 +13437,68 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_nr22hl-sq/q12.jpg",
-     "ms": "img/nq_nr22hl-sq/ms12.jpg",
+     "img": "img/nq_nr22hl/q12.jpg",
+     "ms": "img/nq_nr22hl/ms12.jpg",
      "src": "24M.2.HL.TZ1.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22hl-sq/q27.jpg",
-     "ms": "img/nq_nr22hl-sq/ms27.jpg",
+     "img": "img/nq_nr22hl/q27.jpg",
+     "ms": "img/nq_nr22hl/ms27.jpg",
      "src": "24N.2.HL.TZ0.6"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22hl-sq/q29.jpg",
-     "ms": "img/nq_nr22hl-sq/ms29.jpg",
+     "img": "img/nq_nr22hl/q29.jpg",
+     "ms": "img/nq_nr22hl/ms29.jpg",
      "src": "24M.2.HL.TZ2.6"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22hl-sq/q30.jpg",
-     "ms": "img/nq_nr22hl-sq/ms30.jpg",
+     "img": "img/nq_nr22hl/q30.jpg",
+     "ms": "img/nq_nr22hl/ms30.jpg",
      "src": "23N.2.HL.TZ1.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22hl-sq/q31.jpg",
-     "ms": "img/nq_nr22hl-sq/ms31.jpg",
+     "img": "img/nq_nr22hl/q31.jpg",
+     "ms": "img/nq_nr22hl/ms31.jpg",
      "src": "22M.2.HL.TZ2.4"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22hl-sq/q32.jpg",
-     "ms": "img/nq_nr22hl-sq/ms32.jpg",
+     "img": "img/nq_nr22hl/q32.jpg",
+     "ms": "img/nq_nr22hl/ms32.jpg",
      "src": "21M.2.SL.TZ1.6"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22hl-sq/q33.jpg",
-     "ms": "img/nq_nr22hl-sq/ms33.jpg",
+     "img": "img/nq_nr22hl/q33.jpg",
+     "ms": "img/nq_nr22hl/ms33.jpg",
      "src": "21M.2.HL.TZ2.6"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22hl-sq/q34.jpg",
-     "ms": "img/nq_nr22hl-sq/ms34.jpg",
+     "img": "img/nq_nr22hl/q34.jpg",
+     "ms": "img/nq_nr22hl/ms34.jpg",
      "src": "20N.2.HL.TZ0.7"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22hl-sq/q37.jpg",
-     "ms": "img/nq_nr22hl-sq/ms37.jpg",
+     "img": "img/nq_nr22hl/q37.jpg",
+     "ms": "img/nq_nr22hl/ms37.jpg",
      "src": "25N.1A.HL.TZ3.26"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22hl-sq/q43.jpg",
-     "ms": "img/nq_nr22hl-sq/ms43.jpg",
+     "img": "img/nq_nr22hl/q43.jpg",
+     "ms": "img/nq_nr22hl/ms43.jpg",
      "src": "26M.2.HL.TZ1.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22hl-sq/q44.jpg",
-     "ms": "img/nq_nr22hl-sq/ms44.jpg",
+     "img": "img/nq_nr22hl/q44.jpg",
+     "ms": "img/nq_nr22hl/ms44.jpg",
      "src": "26M.2.HL.TZ2.6"
     }
    ]
@@ -13587,50 +13587,50 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_nr23hl-sq/q03.jpg",
-     "ms": "img/nq_nr23hl-sq/ms03.jpg",
+     "img": "img/nq_nr23hl/q03.jpg",
+     "ms": "img/nq_nr23hl/ms03.jpg",
      "src": "25N.1A.HL.TZ3.30"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr23hl-sq/q12.jpg",
-     "ms": "img/nq_nr23hl-sq/ms12.jpg",
+     "img": "img/nq_nr23hl/q12.jpg",
+     "ms": "img/nq_nr23hl/ms12.jpg",
      "src": "25M.2.HL.TZ1.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr23hl-sq/q13.jpg",
-     "ms": "img/nq_nr23hl-sq/ms13.jpg",
+     "img": "img/nq_nr23hl/q13.jpg",
+     "ms": "img/nq_nr23hl/ms13.jpg",
      "src": "24M.2.HL.TZ1.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr23hl-sq/q14.jpg",
-     "ms": "img/nq_nr23hl-sq/ms14.jpg",
+     "img": "img/nq_nr23hl/q14.jpg",
+     "ms": "img/nq_nr23hl/ms14.jpg",
      "src": "24M.2.HL.TZ2.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr23hl-sq/q15.jpg",
-     "ms": "img/nq_nr23hl-sq/ms15.jpg",
+     "img": "img/nq_nr23hl/q15.jpg",
+     "ms": "img/nq_nr23hl/ms15.jpg",
      "src": "24M.2.HL.TZ2.4"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr23hl-sq/q16.jpg",
-     "ms": "img/nq_nr23hl-sq/ms16.jpg",
+     "img": "img/nq_nr23hl/q16.jpg",
+     "ms": "img/nq_nr23hl/ms16.jpg",
      "src": "23N.2.HL.TZ1.4"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr23hl-sq/q17.jpg",
-     "ms": "img/nq_nr23hl-sq/ms17.jpg",
+     "img": "img/nq_nr23hl/q17.jpg",
+     "ms": "img/nq_nr23hl/ms17.jpg",
      "src": "22M.2.HL.TZ1.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr23hl-sq/q18.jpg",
-     "ms": "img/nq_nr23hl-sq/ms18.jpg",
+     "img": "img/nq_nr23hl/q18.jpg",
+     "ms": "img/nq_nr23hl/ms18.jpg",
      "src": "21M.2.HL.TZ2.7"
     }
    ]
@@ -13821,80 +13821,80 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_nr31hl-sq/q03.jpg",
-     "ms": "img/nq_nr31hl-sq/ms03.jpg",
+     "img": "img/nq_nr31hl/q03.jpg",
+     "ms": "img/nq_nr31hl/ms03.jpg",
      "src": "25M.1A.HL.TZ2.34"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31hl-sq/q18.jpg",
-     "ms": "img/nq_nr31hl-sq/ms18.jpg",
+     "img": "img/nq_nr31hl/q18.jpg",
+     "ms": "img/nq_nr31hl/ms18.jpg",
      "src": "21N.1A.HL.TZ0.25"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31hl-sq/q24.jpg",
-     "ms": "img/nq_nr31hl-sq/ms24.jpg",
+     "img": "img/nq_nr31hl/q24.jpg",
+     "ms": "img/nq_nr31hl/ms24.jpg",
      "src": "EXM.2.HL.TZ0.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31hl-sq/q25.jpg",
-     "ms": "img/nq_nr31hl-sq/ms25.jpg",
+     "img": "img/nq_nr31hl/q25.jpg",
+     "ms": "img/nq_nr31hl/ms25.jpg",
      "src": "25M.2.HL.TZ1.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31hl-sq/q26.jpg",
-     "ms": "img/nq_nr31hl-sq/ms26.jpg",
+     "img": "img/nq_nr31hl/q26.jpg",
+     "ms": "img/nq_nr31hl/ms26.jpg",
      "src": "24M.2.HL.TZ1.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31hl-sq/q27.jpg",
-     "ms": "img/nq_nr31hl-sq/ms27.jpg",
+     "img": "img/nq_nr31hl/q27.jpg",
+     "ms": "img/nq_nr31hl/ms27.jpg",
      "src": "24M.2.HL.TZ1.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31hl-sq/q28.jpg",
-     "ms": "img/nq_nr31hl-sq/ms28.jpg",
+     "img": "img/nq_nr31hl/q28.jpg",
+     "ms": "img/nq_nr31hl/ms28.jpg",
      "src": "24M.2.HL.TZ2.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31hl-sq/q29.jpg",
-     "ms": "img/nq_nr31hl-sq/ms29.jpg",
+     "img": "img/nq_nr31hl/q29.jpg",
+     "ms": "img/nq_nr31hl/ms29.jpg",
      "src": "23N.2.HL.TZ2.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31hl-sq/q30.jpg",
-     "ms": "img/nq_nr31hl-sq/ms30.jpg",
+     "img": "img/nq_nr31hl/q30.jpg",
+     "ms": "img/nq_nr31hl/ms30.jpg",
      "src": "22M.2.HL.TZ2.7"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31hl-sq/q31.jpg",
-     "ms": "img/nq_nr31hl-sq/ms31.jpg",
+     "img": "img/nq_nr31hl/q31.jpg",
+     "ms": "img/nq_nr31hl/ms31.jpg",
      "src": "21N.2.HL.TZ0.11"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31hl-sq/q32.jpg",
-     "ms": "img/nq_nr31hl-sq/ms32.jpg",
+     "img": "img/nq_nr31hl/q32.jpg",
+     "ms": "img/nq_nr31hl/ms32.jpg",
      "src": "21M.2.HL.TZ2.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31hl-sq/q33.jpg",
-     "ms": "img/nq_nr31hl-sq/ms33.jpg",
+     "img": "img/nq_nr31hl/q33.jpg",
+     "ms": "img/nq_nr31hl/ms33.jpg",
      "src": "19N.2.HL.TZ0.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr31hl-sq/q41.jpg",
-     "ms": "img/nq_nr31hl-sq/ms41.jpg",
+     "img": "img/nq_nr31hl/q41.jpg",
+     "ms": "img/nq_nr31hl/ms41.jpg",
      "src": "26M.2.HL.TZ1.4"
     }
    ]
@@ -14061,26 +14061,26 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_nr32hl-sq/q20.jpg",
-     "ms": "img/nq_nr32hl-sq/ms20.jpg",
+     "img": "img/nq_nr32hl/q20.jpg",
+     "ms": "img/nq_nr32hl/ms20.jpg",
      "src": "25M.2.HL.TZ3.6"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr32hl-sq/q21.jpg",
-     "ms": "img/nq_nr32hl-sq/ms21.jpg",
+     "img": "img/nq_nr32hl/q21.jpg",
+     "ms": "img/nq_nr32hl/ms21.jpg",
      "src": "24N.2.HL.TZ0.115"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr32hl-sq/q22.jpg",
-     "ms": "img/nq_nr32hl-sq/ms22.jpg",
+     "img": "img/nq_nr32hl/q22.jpg",
+     "ms": "img/nq_nr32hl/ms22.jpg",
      "src": "24M.2.HL.TZ2.7"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr32hl-sq/q23.jpg",
-     "ms": "img/nq_nr32hl-sq/ms23.jpg",
+     "img": "img/nq_nr32hl/q23.jpg",
+     "ms": "img/nq_nr32hl/ms23.jpg",
      "src": "25N.1A.HL.TZ3.35"
     }
    ]
@@ -14217,8 +14217,8 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_norghl-sq/q20.jpg",
-     "ms": "img/nq_norghl-sq/ms20.jpg",
+     "img": "img/nq_norghl/q20.jpg",
+     "ms": "img/nq_norghl/ms20.jpg",
      "src": "26M.2.HL.TZ2.7"
     }
    ]
@@ -14232,128 +14232,128 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q01.jpg",
-     "ms": "img/nq_p1bsl/ms01.jpg",
+     "img": "img/nq_p1b2026/q01.jpg",
+     "ms": "img/nq_p1b2026/ms01.jpg",
      "src": "26M.1B.SL.TZ1.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q02.jpg",
-     "ms": "img/nq_p1bsl/ms02.jpg",
+     "img": "img/nq_p1b2026/q02.jpg",
+     "ms": "img/nq_p1b2026/ms02.jpg",
      "src": "26M.1B.SL.TZ1.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q03.jpg",
-     "ms": "img/nq_p1bsl/ms03.jpg",
+     "img": "img/nq_p1b2026/q03.jpg",
+     "ms": "img/nq_p1b2026/ms03.jpg",
      "src": "26M.1B.SL.TZ2.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q04.jpg",
-     "ms": "img/nq_p1bsl/ms04.jpg",
+     "img": "img/nq_p1b2026/q04.jpg",
+     "ms": "img/nq_p1b2026/ms04.jpg",
      "src": "26M.1B.SL.TZ2.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q05.jpg",
-     "ms": "img/nq_p1bsl/ms05.jpg",
+     "img": "img/nq_p1b2026/q05.jpg",
+     "ms": "img/nq_p1b2026/ms05.jpg",
      "src": "26M.1B.SL.TZ3.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q06.jpg",
-     "ms": "img/nq_p1bsl/ms06.jpg",
+     "img": "img/nq_p1b2026/q06.jpg",
+     "ms": "img/nq_p1b2026/ms06.jpg",
      "src": "26M.1B.SL.TZ3.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q15.jpg",
-     "ms": "img/nq_p1bsl/ms15.jpg",
+     "img": "img/nq_p1b2026/q15.jpg",
+     "ms": "img/nq_p1b2026/ms15.jpg",
      "src": "25N.1B.SL.TZ1.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q16.jpg",
-     "ms": "img/nq_p1bsl/ms16.jpg",
+     "img": "img/nq_p1b2026/q16.jpg",
+     "ms": "img/nq_p1b2026/ms16.jpg",
      "src": "25N.1B.SL.TZ1.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q17.jpg",
-     "ms": "img/nq_p1bsl/ms17.jpg",
+     "img": "img/nq_p1b2026/q17.jpg",
+     "ms": "img/nq_p1b2026/ms17.jpg",
      "src": "25N.1B.SL.TZ1.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q18.jpg",
-     "ms": "img/nq_p1bsl/ms18.jpg",
+     "img": "img/nq_p1b2026/q18.jpg",
+     "ms": "img/nq_p1b2026/ms18.jpg",
      "src": "25N.1B.SL.TZ3.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q19.jpg",
-     "ms": "img/nq_p1bsl/ms19.jpg",
+     "img": "img/nq_p1b2026/q19.jpg",
+     "ms": "img/nq_p1b2026/ms19.jpg",
      "src": "25N.1B.SL.TZ3.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q20.jpg",
-     "ms": "img/nq_p1bsl/ms20.jpg",
+     "img": "img/nq_p1b2026/q20.jpg",
+     "ms": "img/nq_p1b2026/ms20.jpg",
      "src": "25N.1B.SL.TZ3.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q21.jpg",
-     "ms": "img/nq_p1bsl/ms21.jpg",
+     "img": "img/nq_p1b2026/q21.jpg",
+     "ms": "img/nq_p1b2026/ms21.jpg",
      "src": "25N.1B.SL.TZ3.4"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q29.jpg",
-     "ms": "img/nq_p1bsl/ms29.jpg",
+     "img": "img/nq_p1b2026/q29.jpg",
+     "ms": "img/nq_p1b2026/ms29.jpg",
      "src": "25M.1B.SL.TZ1.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q30.jpg",
-     "ms": "img/nq_p1bsl/ms30.jpg",
+     "img": "img/nq_p1b2026/q30.jpg",
+     "ms": "img/nq_p1b2026/ms30.jpg",
      "src": "25M.1B.SL.TZ1.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q31.jpg",
-     "ms": "img/nq_p1bsl/ms31.jpg",
+     "img": "img/nq_p1b2026/q31.jpg",
+     "ms": "img/nq_p1b2026/ms31.jpg",
      "src": "25M.1B.SL.TZ1.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q32.jpg",
-     "ms": "img/nq_p1bsl/ms32.jpg",
+     "img": "img/nq_p1b2026/q32.jpg",
+     "ms": "img/nq_p1b2026/ms32.jpg",
      "src": "25M.1B.SL.TZ2.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q33.jpg",
-     "ms": "img/nq_p1bsl/ms33.jpg",
+     "img": "img/nq_p1b2026/q33.jpg",
+     "ms": "img/nq_p1b2026/ms33.jpg",
      "src": "25M.1B.SL.TZ2.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q34.jpg",
-     "ms": "img/nq_p1bsl/ms34.jpg",
+     "img": "img/nq_p1b2026/q34.jpg",
+     "ms": "img/nq_p1b2026/ms34.jpg",
      "src": "25M.1B.SL.TZ2.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q35.jpg",
-     "ms": "img/nq_p1bsl/ms35.jpg",
+     "img": "img/nq_p1b2026/q35.jpg",
+     "ms": "img/nq_p1b2026/ms35.jpg",
      "src": "25M.1B.SL.TZ3.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bsl/q36.jpg",
-     "ms": "img/nq_p1bsl/ms36.jpg",
+     "img": "img/nq_p1b2026/q36.jpg",
+     "ms": "img/nq_p1b2026/ms36.jpg",
      "src": "25M.1B.SL.TZ3.2"
     }
    ]
@@ -14367,146 +14367,146 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q07.jpg",
-     "ms": "img/nq_p1bhl/ms07.jpg",
+     "img": "img/nq_p1b2026/q07.jpg",
+     "ms": "img/nq_p1b2026/ms07.jpg",
      "src": "26M.1B.HL.TZ1.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q08.jpg",
-     "ms": "img/nq_p1bhl/ms08.jpg",
+     "img": "img/nq_p1b2026/q08.jpg",
+     "ms": "img/nq_p1b2026/ms08.jpg",
      "src": "26M.1B.HL.TZ1.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q09.jpg",
-     "ms": "img/nq_p1bhl/ms09.jpg",
+     "img": "img/nq_p1b2026/q09.jpg",
+     "ms": "img/nq_p1b2026/ms09.jpg",
      "src": "26M.1B.HL.TZ2.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q10.jpg",
-     "ms": "img/nq_p1bhl/ms10.jpg",
+     "img": "img/nq_p1b2026/q10.jpg",
+     "ms": "img/nq_p1b2026/ms10.jpg",
      "src": "26M.1B.HL.TZ2.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q11.jpg",
-     "ms": "img/nq_p1bhl/ms11.jpg",
+     "img": "img/nq_p1b2026/q11.jpg",
+     "ms": "img/nq_p1b2026/ms11.jpg",
      "src": "26M.1B.HL.TZ2.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q12.jpg",
-     "ms": "img/nq_p1bhl/ms12.jpg",
+     "img": "img/nq_p1b2026/q12.jpg",
+     "ms": "img/nq_p1b2026/ms12.jpg",
      "src": "26M.1B.HL.TZ3.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q13.jpg",
-     "ms": "img/nq_p1bhl/ms13.jpg",
+     "img": "img/nq_p1b2026/q13.jpg",
+     "ms": "img/nq_p1b2026/ms13.jpg",
      "src": "26M.1B.HL.TZ3.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q14.jpg",
-     "ms": "img/nq_p1bhl/ms14.jpg",
+     "img": "img/nq_p1b2026/q14.jpg",
+     "ms": "img/nq_p1b2026/ms14.jpg",
      "src": "26M.1B.HL.TZ3.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q22.jpg",
-     "ms": "img/nq_p1bhl/ms22.jpg",
+     "img": "img/nq_p1b2026/q22.jpg",
+     "ms": "img/nq_p1b2026/ms22.jpg",
      "src": "25N.1B.HL.TZ1.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q23.jpg",
-     "ms": "img/nq_p1bhl/ms23.jpg",
+     "img": "img/nq_p1b2026/q23.jpg",
+     "ms": "img/nq_p1b2026/ms23.jpg",
      "src": "25N.1B.HL.TZ1.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q24.jpg",
-     "ms": "img/nq_p1bhl/ms24.jpg",
+     "img": "img/nq_p1b2026/q24.jpg",
+     "ms": "img/nq_p1b2026/ms24.jpg",
      "src": "25N.1B.HL.TZ1.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q25.jpg",
-     "ms": "img/nq_p1bhl/ms25.jpg",
+     "img": "img/nq_p1b2026/q25.jpg",
+     "ms": "img/nq_p1b2026/ms25.jpg",
      "src": "25N.1B.HL.TZ3.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q26.jpg",
-     "ms": "img/nq_p1bhl/ms26.jpg",
+     "img": "img/nq_p1b2026/q26.jpg",
+     "ms": "img/nq_p1b2026/ms26.jpg",
      "src": "25N.1B.HL.TZ3.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q27.jpg",
-     "ms": "img/nq_p1bhl/ms27.jpg",
+     "img": "img/nq_p1b2026/q27.jpg",
+     "ms": "img/nq_p1b2026/ms27.jpg",
      "src": "25N.1B.HL.TZ3.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q28.jpg",
-     "ms": "img/nq_p1bhl/ms28.jpg",
+     "img": "img/nq_p1b2026/q28.jpg",
+     "ms": "img/nq_p1b2026/ms28.jpg",
      "src": "25N.1B.HL.TZ3.4"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q37.jpg",
-     "ms": "img/nq_p1bhl/ms37.jpg",
+     "img": "img/nq_p1b2026/q37.jpg",
+     "ms": "img/nq_p1b2026/ms37.jpg",
      "src": "25M.1B.HL.TZ1.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q38.jpg",
-     "ms": "img/nq_p1bhl/ms38.jpg",
+     "img": "img/nq_p1b2026/q38.jpg",
+     "ms": "img/nq_p1b2026/ms38.jpg",
      "src": "25M.1B.HL.TZ1.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q39.jpg",
-     "ms": "img/nq_p1bhl/ms39.jpg",
+     "img": "img/nq_p1b2026/q39.jpg",
+     "ms": "img/nq_p1b2026/ms39.jpg",
      "src": "25M.1B.HL.TZ1.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q40.jpg",
-     "ms": "img/nq_p1bhl/ms40.jpg",
+     "img": "img/nq_p1b2026/q40.jpg",
+     "ms": "img/nq_p1b2026/ms40.jpg",
      "src": "25M.1B.HL.TZ2.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q41.jpg",
-     "ms": "img/nq_p1bhl/ms41.jpg",
+     "img": "img/nq_p1b2026/q41.jpg",
+     "ms": "img/nq_p1b2026/ms41.jpg",
      "src": "25M.1B.HL.TZ2.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q42.jpg",
-     "ms": "img/nq_p1bhl/ms42.jpg",
+     "img": "img/nq_p1b2026/q42.jpg",
+     "ms": "img/nq_p1b2026/ms42.jpg",
      "src": "25M.1B.HL.TZ2.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q43.jpg",
-     "ms": "img/nq_p1bhl/ms43.jpg",
+     "img": "img/nq_p1b2026/q43.jpg",
+     "ms": "img/nq_p1b2026/ms43.jpg",
      "src": "25M.1B.HL.TZ3.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q44.jpg",
-     "ms": "img/nq_p1bhl/ms44.jpg",
+     "img": "img/nq_p1b2026/q44.jpg",
+     "ms": "img/nq_p1b2026/ms44.jpg",
      "src": "25M.1B.HL.TZ3.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_p1bhl/q45.jpg",
-     "ms": "img/nq_p1bhl/ms45.jpg",
+     "img": "img/nq_p1b2026/q45.jpg",
+     "ms": "img/nq_p1b2026/ms45.jpg",
      "src": "25M.1B.HL.TZ3.3"
     }
    ]
@@ -14847,128 +14847,128 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q13.jpg",
-     "ms": "img/nq_ns1a-sq/ms13.jpg",
+     "img": "img/nq_ns1a/q13.jpg",
+     "ms": "img/nq_ns1a/ms13.jpg",
      "src": "24M.1A.SL.TZ1.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q33.jpg",
-     "ms": "img/nq_ns1a-sq/ms33.jpg",
+     "img": "img/nq_ns1a/q33.jpg",
+     "ms": "img/nq_ns1a/ms33.jpg",
      "src": "20N.1A.SL.TZ0.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q38.jpg",
-     "ms": "img/nq_ns1a-sq/ms38.jpg",
+     "img": "img/nq_ns1a/q38.jpg",
+     "ms": "img/nq_ns1a/ms38.jpg",
      "src": "25M.2.SL.TZ3.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q39.jpg",
-     "ms": "img/nq_ns1a-sq/ms39.jpg",
+     "img": "img/nq_ns1a/q39.jpg",
+     "ms": "img/nq_ns1a/ms39.jpg",
      "src": "24M.2.SL.TZ1.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q40.jpg",
-     "ms": "img/nq_ns1a-sq/ms40.jpg",
+     "img": "img/nq_ns1a/q40.jpg",
+     "ms": "img/nq_ns1a/ms40.jpg",
      "src": "24M.2.SL.TZ1.6"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q41.jpg",
-     "ms": "img/nq_ns1a-sq/ms41.jpg",
+     "img": "img/nq_ns1a/q41.jpg",
+     "ms": "img/nq_ns1a/ms41.jpg",
      "src": "24M.2.SL.TZ2.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q42.jpg",
-     "ms": "img/nq_ns1a-sq/ms42.jpg",
+     "img": "img/nq_ns1a/q42.jpg",
+     "ms": "img/nq_ns1a/ms42.jpg",
      "src": "22M.2.SL.TZ1.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q43.jpg",
-     "ms": "img/nq_ns1a-sq/ms43.jpg",
+     "img": "img/nq_ns1a/q43.jpg",
+     "ms": "img/nq_ns1a/ms43.jpg",
      "src": "22M.2.SL.TZ2.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q44.jpg",
-     "ms": "img/nq_ns1a-sq/ms44.jpg",
+     "img": "img/nq_ns1a/q44.jpg",
+     "ms": "img/nq_ns1a/ms44.jpg",
      "src": "21N.2.SL.TZ0.9"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q54.jpg",
-     "ms": "img/nq_ns1a-sq/ms54.jpg",
+     "img": "img/nq_ns1a/q54.jpg",
+     "ms": "img/nq_ns1a/ms54.jpg",
      "src": "26M.1A.SL.TZ2.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q64.jpg",
-     "ms": "img/nq_ns1a-sq/ms64.jpg",
+     "img": "img/nq_ns1a/q64.jpg",
+     "ms": "img/nq_ns1a/ms64.jpg",
      "src": "26M.1B.HL.TZ2.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q65.jpg",
-     "ms": "img/nq_ns1a-sq/ms65.jpg",
+     "img": "img/nq_ns1a/q65.jpg",
+     "ms": "img/nq_ns1a/ms65.jpg",
      "src": "26M.2.SL.TZ1.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q66.jpg",
-     "ms": "img/nq_ns1a-sq/ms66.jpg",
+     "img": "img/nq_ns1a/q66.jpg",
+     "ms": "img/nq_ns1a/ms66.jpg",
      "src": "26M.2.SL.TZ1.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q67.jpg",
-     "ms": "img/nq_ns1a-sq/ms67.jpg",
+     "img": "img/nq_ns1a/q67.jpg",
+     "ms": "img/nq_ns1a/ms67.jpg",
      "src": "26M.2.SL.TZ3.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q68.jpg",
-     "ms": "img/nq_ns1a-sq/ms68.jpg",
+     "img": "img/nq_ns1a/q68.jpg",
+     "ms": "img/nq_ns1a/ms68.jpg",
      "src": "26M.2.SL.TZ3.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q69.jpg",
-     "ms": "img/nq_ns1a-sq/ms69.jpg",
+     "img": "img/nq_ns1a/q69.jpg",
+     "ms": "img/nq_ns1a/ms69.jpg",
      "src": "26M.2.HL.TZ1.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q70.jpg",
-     "ms": "img/nq_ns1a-sq/ms70.jpg",
+     "img": "img/nq_ns1a/q70.jpg",
+     "ms": "img/nq_ns1a/ms70.jpg",
      "src": "26M.2.HL.TZ1.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q71.jpg",
-     "ms": "img/nq_ns1a-sq/ms71.jpg",
+     "img": "img/nq_ns1a/q71.jpg",
+     "ms": "img/nq_ns1a/ms71.jpg",
      "src": "26M.2.HL.TZ2.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q72.jpg",
-     "ms": "img/nq_ns1a-sq/ms72.jpg",
+     "img": "img/nq_ns1a/q72.jpg",
+     "ms": "img/nq_ns1a/ms72.jpg",
      "src": "26M.2.HL.TZ2.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q73.jpg",
-     "ms": "img/nq_ns1a-sq/ms73.jpg",
+     "img": "img/nq_ns1a/q73.jpg",
+     "ms": "img/nq_ns1a/ms73.jpg",
      "src": "26M.2.HL.TZ3.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1a-sq/q74.jpg",
-     "ms": "img/nq_ns1a-sq/ms74.jpg",
+     "img": "img/nq_ns1a/q74.jpg",
+     "ms": "img/nq_ns1a/ms74.jpg",
      "src": "26M.2.HL.TZ3.3"
     }
    ]
@@ -15261,92 +15261,92 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q02.jpg",
-     "ms": "img/nq_ns1b-sq/ms02.jpg",
+     "img": "img/nq_ns1b/q02.jpg",
+     "ms": "img/nq_ns1b/ms02.jpg",
      "src": "25M.1A.SL.TZ1.6"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q07.jpg",
-     "ms": "img/nq_ns1b-sq/ms07.jpg",
+     "img": "img/nq_ns1b/q07.jpg",
+     "ms": "img/nq_ns1b/ms07.jpg",
      "src": "25M.1A.SL.TZ2.18"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q10.jpg",
-     "ms": "img/nq_ns1b-sq/ms10.jpg",
+     "img": "img/nq_ns1b/q10.jpg",
+     "ms": "img/nq_ns1b/ms10.jpg",
      "src": "25M.1A.SL.TZ3.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q12.jpg",
-     "ms": "img/nq_ns1b-sq/ms12.jpg",
+     "img": "img/nq_ns1b/q12.jpg",
+     "ms": "img/nq_ns1b/ms12.jpg",
      "src": "24N.1A.SL.TZ0.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q21.jpg",
-     "ms": "img/nq_ns1b-sq/ms21.jpg",
+     "img": "img/nq_ns1b/q21.jpg",
+     "ms": "img/nq_ns1b/ms21.jpg",
      "src": "24M.1A.SL.TZ2.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q30.jpg",
-     "ms": "img/nq_ns1b-sq/ms30.jpg",
+     "img": "img/nq_ns1b/q30.jpg",
+     "ms": "img/nq_ns1b/ms30.jpg",
      "src": "25M.2.SL.TZ1.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q31.jpg",
-     "ms": "img/nq_ns1b-sq/ms31.jpg",
+     "img": "img/nq_ns1b/q31.jpg",
+     "ms": "img/nq_ns1b/ms31.jpg",
      "src": "25M.2.SL.TZ1.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q32.jpg",
-     "ms": "img/nq_ns1b-sq/ms32.jpg",
+     "img": "img/nq_ns1b/q32.jpg",
+     "ms": "img/nq_ns1b/ms32.jpg",
      "src": "25M.2.SL.TZ2.4"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q33.jpg",
-     "ms": "img/nq_ns1b-sq/ms33.jpg",
+     "img": "img/nq_ns1b/q33.jpg",
+     "ms": "img/nq_ns1b/ms33.jpg",
      "src": "25M.2.SL.TZ3.5"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q34.jpg",
-     "ms": "img/nq_ns1b-sq/ms34.jpg",
+     "img": "img/nq_ns1b/q34.jpg",
+     "ms": "img/nq_ns1b/ms34.jpg",
      "src": "24N.2.SL.TZ0.102"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q35.jpg",
-     "ms": "img/nq_ns1b-sq/ms35.jpg",
+     "img": "img/nq_ns1b/q35.jpg",
+     "ms": "img/nq_ns1b/ms35.jpg",
      "src": "24M.2.SL.TZ1.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q36.jpg",
-     "ms": "img/nq_ns1b-sq/ms36.jpg",
+     "img": "img/nq_ns1b/q36.jpg",
+     "ms": "img/nq_ns1b/ms36.jpg",
      "src": "24M.2.SL.TZ2.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q46.jpg",
-     "ms": "img/nq_ns1b-sq/ms46.jpg",
+     "img": "img/nq_ns1b/q46.jpg",
+     "ms": "img/nq_ns1b/ms46.jpg",
      "src": "25N.1A.SL.TZ3.18"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q48.jpg",
-     "ms": "img/nq_ns1b-sq/ms48.jpg",
+     "img": "img/nq_ns1b/q48.jpg",
+     "ms": "img/nq_ns1b/ms48.jpg",
      "src": "25N.2.SL.TZ3.1"
     },
     {
      "type": "p2",
-     "img": "img/nq_ns1b-sq/q52.jpg",
-     "ms": "img/nq_ns1b-sq/ms52.jpg",
+     "img": "img/nq_ns1b/q52.jpg",
+     "ms": "img/nq_ns1b/ms52.jpg",
      "src": "26M.1A.SL.TZ1.19"
     }
    ]
@@ -15573,50 +15573,50 @@ const QUIZ_DATA = {
    "questions": [
     {
      "type": "p2",
-     "img": "img/nq_nr22sl-sq/q01.jpg",
-     "ms": "img/nq_nr22sl-sq/ms01.jpg",
+     "img": "img/nq_nr22sl/q01.jpg",
+     "ms": "img/nq_nr22sl/ms01.jpg",
      "src": "25M.1A.SL.TZ1.22"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22sl-sq/q02.jpg",
-     "ms": "img/nq_nr22sl-sq/ms02.jpg",
+     "img": "img/nq_nr22sl/q02.jpg",
+     "ms": "img/nq_nr22sl/ms02.jpg",
      "src": "25M.1A.SL.TZ1.23"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22sl-sq/q10.jpg",
-     "ms": "img/nq_nr22sl-sq/ms10.jpg",
+     "img": "img/nq_nr22sl/q10.jpg",
+     "ms": "img/nq_nr22sl/ms10.jpg",
      "src": "24M.1A.SL.TZ2.16"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22sl-sq/q16.jpg",
-     "ms": "img/nq_nr22sl-sq/ms16.jpg",
+     "img": "img/nq_nr22sl/q16.jpg",
+     "ms": "img/nq_nr22sl/ms16.jpg",
      "src": "22N.1A.SL.TZ0.19"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22sl-sq/q22.jpg",
-     "ms": "img/nq_nr22sl-sq/ms22.jpg",
+     "img": "img/nq_nr22sl/q22.jpg",
+     "ms": "img/nq_nr22sl/ms22.jpg",
      "src": "21N.1A.SL.TZ0.18"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22sl-sq/q31.jpg",
-     "ms": "img/nq_nr22sl-sq/ms31.jpg",
+     "img": "img/nq_nr22sl/q31.jpg",
+     "ms": "img/nq_nr22sl/ms31.jpg",
      "src": "25M.2.SL.TZ1.2"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22sl-sq/q32.jpg",
-     "ms": "img/nq_nr22sl-sq/ms32.jpg",
+     "img": "img/nq_nr22sl/q32.jpg",
+     "ms": "img/nq_nr22sl/ms32.jpg",
      "src": "25M.2.SL.TZ1.3"
     },
     {
      "type": "p2",
-     "img": "img/nq_nr22sl-sq/q37.jpg",
-     "ms": "img/nq_nr22sl-sq/ms37.jpg",
+     "img": "img/nq_nr22sl/q37.jpg",
+     "ms": "img/nq_nr22sl/ms37.jpg",
      "src": "25N.2.SL.TZ1.3"
     }
    ]
