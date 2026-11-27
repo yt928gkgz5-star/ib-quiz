@@ -38,6 +38,7 @@ td.num { font-variant-numeric: tabular-nums; }
     </div>
     <div class="err" id="asgErr"></div>
     <div class="listhead">Currently open for this class</div>
+    <div id="oldNote"></div>
     <table id="asgTbl"><thead><tr><th>Quiz</th><th>Level · paper</th><th>Opened on</th><th></th></tr></thead>
       <tbody><tr><td colspan="4" class="cnt">Select a class, then press Refresh.</td></tr></tbody></table>
     <div id="chList" style="margin-top:12px"></div>
@@ -376,13 +377,18 @@ function renderAssigned() {
   const cls = taskCls.value;
   const tb = document.querySelector("#asgTbl tbody");
   const rows = cls && assignedRows ? assignedRows.filter(r => r.cls === cls) : [];
+  const oldRows = rows.filter(r => !allQuizzes().some(c => c.id === r.ch));   // set on a chapter that no longer exists
+  document.getElementById("oldNote").innerHTML = oldRows.length
+    ? `<div class="reviewbar" style="margin:0 0 10px"><b>${oldRows.length} task${oldRows.length === 1 ? "" : "s"} here were set on the old chapters</b> (before the questions moved to units). Those chapters no longer exist, so they open nothing for the class.
+       <a class="tlink" style="margin-left:8px" onclick="closeOldTasks(this)">Close these ${oldRows.length} old tasks and tick the units below</a></div>`
+    : "";
   if (!cls) { tb.innerHTML = `<tr><td colspan="4" class="cnt">Select a class, then press Refresh.</td></tr>`; }
   else if (!assignedRows) { tb.innerHTML = `<tr><td colspan="4" class="cnt">Press Refresh to load.</td></tr>`; }
   else if (!rows.length) { tb.innerHTML = `<tr><td colspan="4" class="cnt">Nothing is open for this class yet.</td></tr>`; }
   else {
     tb.innerHTML = rows.map(r => {
       const ch = allQuizzes().find(c => c.id === r.ch);
-      return `<tr><td>${esc(r.title || r.ch)}</td><td>${ch ? esc(levelPaperLabel(ch.level2 || "SL", ch.paper || "MCQ")) : '<span class="cnt">unknown quiz</span>'}</td>
+      return `<tr><td>${esc(r.title || r.ch)}${ch ? "" : ' <span class="cnt">old chapter — not open for students</span>'}</td><td>${ch ? esc(levelPaperLabel(ch.level2 || "SL", ch.paper || "MCQ")) : '<span class="cnt">unknown quiz</span>'}</td>
         <td>${esc(fmtDay(r.created_at))}</td><td><a class="tlink" onclick="removeAssigned(${+r.id}, this)">close</a></td></tr>`;
     }).join("");
   }
@@ -397,6 +403,37 @@ async function loadAssigned(btn) {
     renderAssigned();
   } catch (e) { asgFail(e); }
   if (btn) { btn.disabled = false; btn.textContent = "Refresh"; }
+}
+/* Unit chapters (multiple choice) of one level: u1a, u1b, u2 … u10 for SL; the same with "h" for HL. */
+function tickUnits(level) {
+  const re = level === "HL" ? /^hu(\d+[ab]?)$/ : level === "SL" ? /^u(\d+[ab]?)$/ : null;
+  if (!re) return 0;
+  let n = 0;
+  document.querySelectorAll("#chList input[type=checkbox]").forEach(cb => {
+    if (re.test(cb.value) && !cb.checked) { cb.checked = true; n++; }
+  });
+  return n;
+}
+async function closeOldTasks(btn) {
+  const cls = taskCls.value;
+  const old = (assignedRows || []).filter(r => r.cls === cls && !allQuizzes().some(c => c.id === r.ch));
+  if (!old.length) return;
+  document.getElementById("asgErr").textContent = "";
+  btn.textContent = "closing…";
+  try {
+    const app = await tcbReady();
+    for (const r of old) {
+      const res = await app.rdb().from("assignments").delete().eq("id", r.id);
+      if (res.error) throw res.error;
+    }
+    assignedRows = await fetchAssigned();
+    renderAssigned();
+    const level = /\bHL\b/.test(cls) ? "HL" : /\bSL\b/.test(cls) ? "SL" : "";
+    const ticked = tickUnits(level);
+    document.getElementById("asgStat").textContent = `${old.length} old task${old.length === 1 ? "" : "s"} closed` +
+      (ticked ? ` · ${ticked} unit chapter${ticked === 1 ? "" : "s"} ticked below — press "Open selected for this class"` : " · tick the quizzes to open below");
+    btn.textContent = "done";
+  } catch (e) { asgFail(e); btn.textContent = "close old tasks"; }
 }
 async function assignTasks(btn) {
   const errEl = document.getElementById("asgErr");
