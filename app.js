@@ -918,7 +918,8 @@ function chapterStats(ch) {
 
 function render() {
   if (state.view === "home") renderHome();
-  else if (state.view === "hub") renderHub();
+  else if (state.view === "hub" && state.unit !== undefined) renderUnitHub(state.unit);   // Grade 11 unit page
+  else if (state.view === "hub") renderHub();                                               // Pre-IB Chemical Bonding
   else if (state.view === "quiz") renderQuiz();
   else if (state.view === "account") renderAccount();
   else renderResult();
@@ -960,6 +961,90 @@ function fwPractice(tag, ids) {
     return `<div class="fwlvl"><span class="fwtag">${tag}</span>${parts.join("")}</div>`;
   }).join("");
 }
+/* ---------- Grade 11 unit page: one unit opened as a page with four numbered parts ---------- */
+/* framework.js marks a unit with hub: "unit". The page shows, in SL and in HL:
+   1 Learning (interactive courseware), 2 Paper 1 (by section), 3 Paper 2 (by section), 4 Homework.
+   A part with nothing listed in framework.js shows a dashed "coming soon" box, so the frame is
+   complete before the material arrives. */
+function unitLevelIds(u, kind) {                       // courses / homework: { SL: [...], HL: [...] }; a bare list counts as SL
+  const v = u[kind];
+  return Array.isArray(v) ? { SL: v, HL: [] } : { SL: (v && v.SL) || [], HL: (v && v.HL) || [] };
+}
+function unitHubEntry(u, i) {                         // the one line this unit takes on the course home
+  const practice = ["SL", "HL"].flatMap(l => u.practice[l] || []).map(findChapter).filter(Boolean);
+  const other = ["courses", "homework"].flatMap(k => { const d = unitLevelIds(u, k); return d.SL.concat(d.HL); });
+  const open = practice.filter(isAllowed).length + other.filter(id => {
+    const c = (typeof COURSES === "undefined" ? [] : COURSES).find(x => x.id === id);
+    return c ? courseAllowed(c) : isAllowed(findChapter(id));
+  }).length;
+  const total = practice.length + other.length;
+  const status = !total ? "" : open ? `${open} of ${total} sets open for your class` : "not open for your class yet";
+  return `
+    <section class="card fwunit">
+      <div class="listhead">${escHTML(u.title)}</div>
+      <div class="fwrow"><div class="fwk">Chapter</div><div class="fwitems">
+        <a class="fwitem fwhub" onclick="openUnit(${i})"><b>Open ${escHTML(u.title.split(" · ")[0])}</b>
+          <span>1 Learning · 2 Paper 1 · 3 Paper 2 · 4 Homework — SL and HL · ${status}</span></a>
+      </div></div>
+    </section>`;
+}
+function openUnit(i) {
+  state = { view: "hub", unit: i, course: state.course, browse: state.browse || { level: "SL", paper: "MCQ" },
+    name: localStorage.getItem("stuName") || "", answers: {}, marks: {}, sketches: {}, page: 0,
+    submitted: false, marking: false, frqResults: null, reviewDate: null };
+  render(); window.scrollTo(0, 0);
+}
+function fwBlank(text) { return `<span class="fwblank">${escHTML(text)}</span>`; }
+function unitLevelRows(u, kind) {                      // one part: a course tile / homework chips per level, or the blank box
+  const blank = fwBlank(kind === "courses" ? "Interactive courseware — coming soon" : "Supplementary homework — coming soon");
+  return ["SL", "HL"].map(lvl => {
+    const ids = unitLevelIds(u, kind)[lvl];
+    const items = ids.length
+      ? (kind === "courses" ? ids.map(fwCourseItem).join("") : ids.map(id => fwQuizChip(findChapter(id), (findChapter(id) || {}).title || id)).join(""))
+      : blank;
+    return `<div class="fwlvl"><span class="fwtag">${lvl}</span>${items}</div>`;
+  }).join("");
+}
+function unitPaperRows(u, paper) {                     // one paper: the whole-unit quiz and one quiz per syllabus section
+  const name = paper === "MCQ" ? "Paper 1" : "Paper 2";
+  return ["SL", "HL"].map(lvl => {
+    const chs = (u.practice[lvl] || []).map(findChapter).filter(ch => ch && (ch.paper || "MCQ") === paper);
+    const items = chs.length
+      ? chs.map(ch => fwQuizChip(ch, name + " · whole unit")
+          + `<span class="fwset">${sectionChaptersOf(ch.id).map(s => fwQuizChip(s, s._section, s.questions.length + " questions")).join("")}</span>`).join("")
+      : fwBlank(name + " practice — coming soon");
+    return `<div class="fwlvl"><span class="fwtag">${lvl}</span>${items}</div>`;
+  }).join("");
+}
+function renderUnitHub(i) {
+  const me = session();
+  const key = FRAMEWORK[state.course] ? state.course : frameworkKey(me && me.cls);
+  const fw = FRAMEWORK[key], u = fw && fw.units[i];
+  if (!u || u.hub !== "unit") { goHome(); return; }       // nothing to show: back to the course home
+  const authBar = me
+    ? `<div class="authbar"><button class="btn-auth light" onclick="openAccount()">My history</button><button class="btn-auth light" onclick="signOut()">Sign out</button></div>`
+    : `<div class="authbar"><button class="btn-auth" onclick="openAccount()">Sign in</button></div>`;
+  app.innerHTML = `
+  <header class="site small"><div class="inner">
+    ${authBar}
+    <div class="back" onclick="goHome()">← All units</div>
+    <div class="kicker">${escHTML(fw.label)}</div>
+    <h1>${escHTML(u.title)}</h1>
+    <p>SL and HL — learn it, drill it, then write about it</p>
+  </div></header>
+  <main class="wrap">
+    <div class="sublabel">1 · Learning — interactive courseware</div>
+    <section class="card fwunit fwpart">${unitLevelRows(u, "courses")}</section>
+    <div class="sublabel">2 · Paper 1 — multiple-choice practice, by syllabus section</div>
+    <section class="card fwunit fwpart">${unitPaperRows(u, "MCQ")}</section>
+    <div class="sublabel">3 · Paper 2 — written practice, by syllabus section</div>
+    <section class="card fwunit fwpart">${unitPaperRows(u, "P2")}</section>
+    <div class="sublabel">4 · Homework — supplementary problem sets</div>
+    <section class="card fwunit fwpart">${unitLevelRows(u, "homework")}</section>
+    <div class="footnote">Work top to bottom: learn the unit, drill Paper 1 and Paper 2 section by section, then do the homework. Only what your teacher has opened for your class is clickable; the dashed boxes are filled in as the material is added.</div>
+  </main>`;
+}
+
 function fwSetsHTML() {
   const block = (lvl, tag) => {
     const sets = {};
@@ -995,7 +1080,8 @@ function renderCourseHome(key) {
   const me = session(), fw = FRAMEWORK[key];
   const showWork = key !== "12";                                  // Grade 12 has practice only
   const practiceTag = key === "Pre-IB" ? "P1" : "SL";
-  const units = fw.units.map(u => {
+  const units = fw.units.map((u, i) => {
+    if (u.hub === "unit") return unitHubEntry(u, i);
     if (u.hub) {
       return `
     <section class="card fwunit">

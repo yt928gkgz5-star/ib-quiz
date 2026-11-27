@@ -5,6 +5,10 @@
    practice   = quiz chapters of the question bank (data.js): SL / HL, each [Paper 1 chapter, Paper 2 chapter]
    courses    = interactive courses (COURSES in app.js), opened by the teacher per class like a task
    homework   = quiz chapters used as homework (Pre-IB written-answer sets)
+   hub        = the unit opens as a page of its own. true = the Pre-IB Chemical Bonding page;
+                "unit" = the numbered unit page (app.js renderUnitHub). Grade 11 units use it, and their
+                courses and homework are per level: { SL: [ids], HL: [ids] }. Leave a list empty to show
+                the dashed "coming soon" box of that part.
    sets       = full past papers (every SL and HL set) are listed for this grade
    extras     = "lab" and "ia" pages, and "p1b" = Paper 1B practice chapters            */
 
@@ -24,13 +28,13 @@ const FRAMEWORK = {
 
   "11": {
     label: "IB Chemistry · Grade 11",
-    hint: "Five units in SL and HL, each with courseware, Paper 1 and Paper 2 practice by section, and homework.",
+    hint: "Five units in SL and HL. Open a unit for its courseware, Paper 1 and Paper 2 practice by section, and homework.",
     units: [
-      { title: "Unit 1.1 · Structure Models of Matter",            practice: { SL: ["u1a", "p2u1a"], HL: ["hu1a", "hp2u1a"] }, courses: [], homework: [] },
-      { title: "Unit 1.2 · Counting Particles & Stoichiometry",    practice: { SL: ["u1b", "p2u1b"], HL: ["hu1b", "hp2u1b"] }, courses: [], homework: [] },
-      { title: "Unit 2 · Bonding & Structure",                    practice: { SL: ["u2", "p2u2"], HL: ["hu2", "hp2u2"] }, courses: [], homework: [] },
-      { title: "Unit 4 · Organic Structure (S3.2)",                practice: { SL: ["u4", "p2u4"], HL: ["hu4", "hp2u4"] }, courses: ["tl-s32"], homework: [] },
-      { title: "Unit 10 · Organic Reactions (R3.3–R3.4)",           practice: { SL: ["u10", "p2u10"], HL: ["hu10", "hp2u10"] }, courses: [], homework: [] }
+      { title: "Unit 1.1 · Structure Models of Matter", hub: "unit",            practice: { SL: ["u1a", "p2u1a"], HL: ["hu1a", "hp2u1a"] }, courses: { SL: [], HL: [] }, homework: { SL: [], HL: [] } },
+      { title: "Unit 1.2 · Counting Particles & Stoichiometry", hub: "unit",    practice: { SL: ["u1b", "p2u1b"], HL: ["hu1b", "hp2u1b"] }, courses: { SL: [], HL: [] }, homework: { SL: [], HL: [] } },
+      { title: "Unit 2 · Bonding & Structure", hub: "unit",                    practice: { SL: ["u2", "p2u2"], HL: ["hu2", "hp2u2"] }, courses: { SL: [], HL: [] }, homework: { SL: [], HL: [] } },
+      { title: "Unit 4 · Organic Structure (S3.2)", hub: "unit",                practice: { SL: ["u4", "p2u4"], HL: ["hu4", "hp2u4"] }, courses: { SL: ["tl-s32"], HL: [] }, homework: { SL: [], HL: [] } },
+      { title: "Unit 10 · Organic Reactions (R3.3–R3.4)", hub: "unit",           practice: { SL: ["u10", "p2u10"], HL: ["hu10", "hp2u10"] }, courses: { SL: [], HL: [] }, homework: { SL: [], HL: [] } }
     ],
     sets: false,
     extras: ["p1b", "ia", "lab"]

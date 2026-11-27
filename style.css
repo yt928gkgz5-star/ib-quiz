@@ -283,3 +283,8 @@ header.site .inner { position: relative; padding-top: 46px; }
 .fwhub { border: 1.5px solid #4472C4; background: #F1F7FE; }
 .fwhub b { color: #0E2A47; }
 .sublabel { font-size: 13px; }
+
+/* Grade 11 unit page (framework.js: hub "unit") */
+.fwpart .fwlvl + .fwlvl { border-top: 1px dashed var(--line); padding-top: 12px; }
+.fwpart .fwtag { min-width: 30px; }
+.fwblank { display: inline-flex; align-items: center; padding: 10px 14px; border: 1.5px dashed #B9C7D8; border-radius: 10px; color: var(--muted); font-size: 13px; min-width: 220px; }
