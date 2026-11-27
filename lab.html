@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab experiments · IB Chemistry</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .hub { max-width: 980px; }
+  .lab { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .lab b { color: var(--ink); }
+  .lab a { color: var(--navy-soft); font-weight: 600; white-space: nowrap; margin-left: 12px; }
+</style>
+</head>
+<body>
+<header class="site"><div class="inner">
+  <div class="back"><a href="index.html" style="color:#fff">← Back to my course</a></div>
+  <div class="kicker">Practical work</div>
+  <h1>Lab experiments</h1>
+  <p>The practicals of each unit with their worksheets. Bring the worksheet to the lesson; the question, hypothesis, variables and conclusion are yours to write.</p>
+</div></header>
+<main class="wrap hub">
+<section class="card"><div class="listhead">By unit</div><div id="labList"></div></section>
+</main>
+<script src="labs.js"></script>
+<script>
+/* labs.js holds LABS: { unit, title, worksheet, answers } (file names in this folder). */
+(function () {
+  var UNITS = ["Unit 1.1", "Unit 1.2", "Unit 2", "Unit 3", "Unit 4", "Unit 5", "Unit 6", "Unit 7", "Unit 8", "Unit 9", "Unit 10"];
+  var list = (typeof LABS !== "undefined" && LABS) || [];
+  var host = document.getElementById("labList");
+  UNITS.forEach(function (u) {
+    var wrap = document.createElement("div");
+    wrap.style.paddingTop = "10px";
+    var h = document.createElement("div");
+    h.className = "listhead"; h.style.fontSize = "13px"; h.textContent = u;
+    wrap.appendChild(h);
+    var items = list.filter(function (l) { return l.unit === u; });
+    if (!items.length) {
+      var p = document.createElement("div");
+      p.className = "meta"; p.style.padding = "6px 0 4px"; p.textContent = "Practicals for this unit will be listed here.";
+      wrap.appendChild(p);
+    }
+    items.forEach(function (l) {
+      var row = document.createElement("div"); row.className = "lab";
+      var b = document.createElement("b"); b.textContent = l.title; row.appendChild(b);
+      var links = document.createElement("span");
+      [["worksheet", "worksheet"], ["answers", "answers"]].forEach(function (pair) {
+        if (!l[pair[0]]) return;
+        var a = document.createElement("a");
+        a.href = l[pair[0]]; a.target = "_blank"; a.rel = "noreferrer"; a.textContent = pair[1];
+        links.appendChild(a);
+      });
+      row.appendChild(links);
+      wrap.appendChild(row);
+    });
+    host.appendChild(wrap);
+  });
+})();
+</script>
+</body>
+</html>

@@ -726,6 +726,7 @@ function getAccess() {
 function currentClass() { return (session() && session().cls) || (getAccess() || {}).cls || ""; }
 function isAllowed(ch) {
   if (ownedIds.has(ch.id) || assignedIds.has(ch.id)) return true;   // finished earlier, or assigned to the class
+  if (ch._parent && (assignedIds.has(ch._parent) || ownedIds.has(ch._parent))) return true;   // a section quiz of an opened unit
   if (ch._src && ch._src.some(id => assignedIds.has(id))) return true;
   const a = getAccess();
   if (!a) return false;
@@ -850,7 +851,102 @@ function render() {
   else renderResult();
 }
 
+/* ---------- grade frameworks (framework.js): the first page of a signed-in student ---------- */
+/* Shows only the course of the student's class: its units with courseware, homework and past-paper
+   practice (by section where the questions carry a section tag), plus full papers and the
+   Lab / IA / Paper 1B section for the grades that have them. The old level/paper home stays for
+   everyone who is not signed in. */
 function renderHome() {
+  const me = session();
+  const key = me ? (state.course || frameworkKey(me.cls)) : "";
+  if (key && typeof FRAMEWORK !== "undefined" && FRAMEWORK[key]) { renderCourseHome(key); return; }
+  renderLevelHome();
+}
+function setCourse(k) { state.course = k; state.view = "home"; render(); window.scrollTo(0, 0); }
+function fwLocked() {
+  alert("This is not open for your class yet. Your teacher opens it on the teacher page.");
+}
+/* one clickable tile; a quiz chapter that is not open for the class is shown greyed */
+function fwQuizChip(ch, text, sub) {
+  if (!ch) return "";
+  const open = isAllowed(ch);
+  return `<a class="fwitem${open ? "" : " locked"}" title="${escAttr(ch.title)}" onclick="${open ? `openById('${escAttr(ch.id)}')` : "fwLocked()"}"><b>${escHTML(text)}</b><span>${escHTML(sub || (ch.questions.length + " questions"))}</span></a>`;
+}
+function fwCourseItem(id) {
+  const c = (typeof COURSES === "undefined" ? [] : COURSES).find(x => x.id === id);
+  if (!c) return "";
+  const open = courseAllowed(c);
+  return `<a class="fwitem${open ? "" : " locked"}" onclick="${open ? `openById('course:${escAttr(c.id)}')` : "fwLocked()"}"><b>${escHTML(c.title)}</b><span>${escHTML(c.tag || "")} · interactive course</span></a>`;
+}
+/* one level of one unit: the whole-unit quiz and one quiz per syllabus section */
+function fwPractice(tag, ids) {
+  return ids.map(id => findChapter(id)).filter(Boolean).map(ch => {
+    const paper = ch.paper === "MCQ" ? "Paper 1" : ch.paper === "P2" ? "Paper 2" : (ch.paper || "");
+    const parts = [fwQuizChip(ch, paper + " · whole unit")];
+    sectionChaptersOf(ch.id).forEach(s => parts.push(fwQuizChip(s, s._section, s.questions.length + " questions")));
+    return `<div class="fwlvl"><span class="fwtag">${tag}</span>${parts.join("")}</div>`;
+  }).join("");
+}
+function fwSetsHTML() {
+  const block = (lvl, tag) => {
+    const sets = {};
+    QUIZ_DATA.chapters.filter(c => c.level2 === lvl && /^[a-z]+set\d+p[12]$/.test(c.id)).forEach(c => {
+      const id = c.id.replace(/p[12]$/, "");
+      (sets[id] = sets[id] || []).push(c);
+    });
+    const order = id => +id.match(/\d+/)[0];
+    return `<div class="fwlvl"><span class="fwtag">${tag}</span>` + Object.keys(sets).sort((a, b) => order(a) - order(b)).map(id =>
+      `<span class="fwset">${sets[id].sort((a, b) => a.id.localeCompare(b.id)).map(c => fwQuizChip(c, c.title, c.questions.length + " questions")).join("")}</span>`).join("") + `</div>`;
+  };
+  return `<section class="card fwunit">
+    <div class="listhead">Full past papers</div>
+    <div class="fwrow"><div class="fwk">Past papers</div><div class="fwitems">${block("SLP", "SL")}${block("HLP", "HL")}</div></div>
+  </section>`;
+}
+function fwExtrasHTML(extras) {
+  const items = [];
+  if (extras.indexOf("lab") > -1) items.push(`<a class="fwitem" href="lab.html"><b>Lab experiments</b><span>list of practicals &amp; worksheets</span></a>`);
+  if (extras.indexOf("ia") > -1) items.push(`<a class="fwitem" href="ia.html"><b>IA guidance</b><span>criteria · topics · timeline</span></a>`);
+  if (extras.indexOf("p1b") > -1) {
+    const sl = findChapter("p1bsl"), hl = findChapter("p1bhl");
+    if (sl) items.push(fwQuizChip(sl, "Paper 1B · SL"));
+    if (hl) items.push(fwQuizChip(hl, "Paper 1B · HL"));
+    if (!sl && !hl) items.push(`<span class="meta">Paper 1B practice — coming soon</span>`);
+  }
+  return `<section class="card fwunit">
+    <div class="listhead">Lab · IA · Paper 1B</div>
+    <div class="fwitems">${items.join("")}</div>
+  </section>`;
+}
+function renderCourseHome(key) {
+  const me = session(), fw = FRAMEWORK[key];
+  const showWork = key !== "12";                                  // Grade 12 has practice only
+  const practiceTag = key === "Pre-IB" ? "P1" : "SL";
+  const units = fw.units.map(u => `
+    <section class="card fwunit">
+      <div class="listhead">${escHTML(u.title)}</div>
+      ${showWork ? `<div class="fwrow"><div class="fwk">Courseware</div><div class="fwitems">${(u.courses || []).map(fwCourseItem).join("") || `<span class="meta">Interactive courseware — coming soon</span>`}</div></div>
+      <div class="fwrow"><div class="fwk">Homework</div><div class="fwitems">${(u.homework || []).map(id => fwQuizChip(findChapter(id), (findChapter(id) || {}).title || id)).join("") || `<span class="meta">Homework sets — coming soon</span>`}</div></div>` : ""}
+      <div class="fwrow"><div class="fwk">Past-paper practice</div><div class="fwitems">${fwPractice(practiceTag, u.practice.SL || [])}${fwPractice("HL", u.practice.HL || [])}</div></div>
+    </section>`).join("");
+  app.innerHTML = `
+  <header class="site"><div class="inner">
+    <div class="authbar"><button class="btn-auth light" onclick="openAccount()">My history</button><button class="btn-auth light" onclick="signOut()">Sign out</button></div>
+    <div class="kicker">${QUIZ_DATA.course}${me && me.cls ? " · " + escHTML(me.cls) : ""}</div>
+    <h1>${escHTML(fw.label)}</h1>
+    <p>${escHTML(fw.hint)} Only what your teacher has opened for your class is clickable.</p>
+  </div></header>
+  <main class="wrap">
+    <div id="taskBox">${tasksHTML()}</div>
+    ${units}
+    ${fw.sets ? fwSetsHTML() : ""}
+    ${(fw.extras || []).length ? fwExtrasHTML(fw.extras) : ""}
+    <div class="footnote">Every question keeps its original diagram or structure, so figures stay exact. Your score is shown immediately after submission, with the correct answer for each question.</div>
+  </main>`;
+}
+
+/* the former home: one tab per level and paper. Still shown to anyone who is not signed in. */
+function renderLevelHome() {
   if (state.browse.level === "TL") { renderTLHome(); return; }
   const { level, paper } = state.browse;
   const all = activeChapters();

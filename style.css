@@ -263,3 +263,18 @@ header.site .inner { position: relative; padding-top: 46px; }
 .lessonlink { color: var(--navy-soft, #1F6FB2); text-decoration: none; font-size: 14px; padding: 6px 4px; border-bottom: 1px dashed var(--line); }
 .lessonlink:hover { background: #F1F7FE; }
 .lessonlink .meta { color: var(--muted, #5A6C80); }
+
+/* ---- grade frameworks (framework.js): the course home of a signed-in student ---- */
+.fwunit .fwrow { display: flex; gap: 14px; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--line); }
+.fwunit .fwrow:first-of-type { border-top: 0; padding-top: 4px; }
+.fwk { flex: 0 0 150px; font-size: 11.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding-top: 9px; }
+.fwitems { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.fwitem { display: inline-flex; flex-direction: column; gap: 2px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; cursor: pointer; min-width: 118px; max-width: 300px; color: var(--ink, #1a2a3a); text-decoration: none; }
+.fwitem b { font-size: 13.5px; }
+.fwitem span { font-size: 12px; color: var(--muted); }
+.fwitem:hover { border-color: #9DC0E4; }
+.fwitem.locked { opacity: .42; cursor: not-allowed; }
+.fwlvl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; }
+.fwtag { font-weight: 700; font-size: 12px; color: var(--navy-deep); min-width: 26px; }
+.fwset { display: inline-flex; gap: 6px; }
+@media (max-width: 640px) { .fwk { flex-basis: 100%; padding-top: 0; } }

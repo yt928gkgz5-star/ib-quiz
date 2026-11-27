@@ -18,6 +18,8 @@ td.num { font-variant-numeric: tabular-nums; }
 .err { color: var(--no); font-size: 12px; margin-top: 10px; }
 .stat { display: flex; gap: 18px; margin-top: 6px; font-size: 12px; color: var(--muted); }
 .stat b { color: var(--navy-deep); font-size: 18px; font-weight: 600; display: block; }
+.ck.sub { margin-left: 18px; font-size: 12px; opacity: .85; }
+.ck.sub .cnt { font-weight: 400; }
 </style>
 </head>
 <body>
@@ -163,6 +165,7 @@ td.num { font-variant-numeric: tabular-nums; }
 <script src="cloud-config.js"></script>
 <script src="papers-map.js"></script>
 <script src="data.js"></script>
+<script src="framework.js"></script>
 <script src="roster-data.js"></script>
 <script>
 let rows = [];
@@ -221,13 +224,17 @@ function buildChapterList() {
     const key = ch.course ? "Topical Learning · interactive courses" : levelPaperLabel(ch.level2 || "SL", ch.paper || "MCQ");
     (byKey[key] = byKey[key] || []).push(ch);
   });
+  Object.keys(byKey).forEach(key => {                         // a unit first, then its section quizzes
+    const units = byKey[key].filter(ch => !ch._parent);
+    byKey[key] = [].concat(...units.map(u => [u].concat(byKey[key].filter(ch => ch._parent === u.id))));
+  });
   box.innerHTML = Object.keys(byKey).map((key, gi) => `
     <div class="grp">
       <div class="grp-h">${key}
         <a class="tlink" style="font-weight:400; margin-left:10px" onclick="toggleGroup(this, ${gi})">select all / none</a></div>
       <div class="grp-body" data-g="${gi}">
       ${byKey[key].map(ch => `
-        <label class="ck"><input type="checkbox" value="${ch.id}"> ${esc(ch.title)} <span class="cnt">${ch.course ? "interactive course" : "(" + ch.questions.length + " Q)"}</span></label>`).join("")}
+        <label class="ck${ch._parent ? " sub" : ""}"><input type="checkbox" value="${ch.id}">${ch._parent ? "↳ " : ""} ${esc(ch.title)} <span class="cnt">${ch.course ? "interactive course" : "(" + ch.questions.length + " Q)"}</span></label>`).join("")}
       </div>
     </div>`).join("");
 }

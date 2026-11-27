@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IA guidance · IB Chemistry</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .hub { max-width: 980px; }
+  .hub .card { margin-bottom: 14px; }
+  .slot { border: 1px dashed var(--line); border-radius: 10px; padding: 12px 14px; margin-top: 8px; color: var(--muted); font-size: 13.5px; }
+  .slot a { color: var(--navy-soft); font-weight: 600; }
+</style>
+</head>
+<body>
+<header class="site"><div class="inner">
+  <div class="back"><a href="index.html" style="color:#fff">← Back to my course</a></div>
+  <div class="kicker">Internal Assessment</div>
+  <h1>IA guidance</h1>
+  <p>Everything for your individual investigation, in one place: the criteria, how to choose a topic, the timeline and the templates.</p>
+</div></header>
+<main class="wrap hub">
+
+<section class="card"><div class="listhead">1 · Assessment criteria</div>
+  <p class="footnote" style="margin-top:4px">Read the official criteria before you plan: every mark comes from them.</p>
+  <div class="slot" id="ia-criteria">The criteria sheet will be posted here by your teacher.</div>
+</section>
+
+<section class="card"><div class="listhead">2 · Choosing a topic and a research question</div>
+  <p class="footnote" style="margin-top:4px">A workable investigation starts from a focused, measurable research question.</p>
+  <div class="slot" id="ia-topics">Topic ideas and the checklist for a good research question will be posted here.</div>
+</section>
+
+<section class="card"><div class="listhead">3 · Timeline</div>
+  <p class="footnote" style="margin-top:4px">Each stage has a deadline; plan backwards from the final submission.</p>
+  <div class="slot" id="ia-timeline">Topic · proposal · data collection · analysis · first draft · final report — the dates will be posted here.</div>
+</section>
+
+<section class="card"><div class="listhead">4 · Report structure and templates</div>
+  <p class="footnote" style="margin-top:4px">Use the template so that no assessed section is missing.</p>
+  <div class="slot" id="ia-templates">Report template, data-table sheet and formatting guide will be posted here.</div>
+</section>
+
+</main>
+<script src="ia-materials.js"></script>
+<script>
+/* ia-materials.js holds IA_MATERIALS: { card, title, href, note }. Each one appears as a link in its card. */
+if (typeof IA_MATERIALS !== "undefined") {
+  IA_MATERIALS.forEach(function (m) {
+    var box = document.getElementById(m.card);
+    if (!box) return;
+    var div = document.createElement("div");
+    div.style.marginTop = "8px";
+    var a = document.createElement("a");
+    a.href = m.href; a.target = "_blank"; a.rel = "noreferrer"; a.textContent = "→ " + m.title;
+    div.appendChild(a);
+    if (m.note) { var s = document.createElement("span"); s.className = "meta"; s.textContent = " " + m.note; div.appendChild(s); }
+    box.appendChild(div);
+  });
+}
+</script>
+</body>
+</html>
