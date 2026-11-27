@@ -184,15 +184,25 @@ function b64urlEnc(s) {
   return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 const PREIB_TEACHER = [
-  { id: "preib-stoich", title: "Stoichiometry", paper: "MCQ", src: ["ch1"] },
-  { id: "preib-atoms", title: "Atomic Structure", paper: "MCQ", src: ["ch2"] },
-  { id: "preib-periodic", title: "Periodic Trends", paper: "MCQ", src: ["ch3"] },
-  { id: "preib-bonding", title: "Chemical Bonding", paper: "MCQ", src: ["ch4.1", "ch4.2", "ch4.3"] },
-  { id: "preib-frq-polarity", title: "Chemical Bonding · Molecular Polarity (VSEPR & Polarity)", paper: "FRQ", n: 10 }
+  { id: "preib-stoich", title: "Stoichiometry", paper: "MCQ", src: ["u1b"] },
+  { id: "preib-atoms", title: "Atomic Structure", paper: "MCQ", src: ["u1a"] },
+  { id: "preib-periodic", title: "Periodic Trends", paper: "MCQ", src: ["u3"] },
+  { id: "preib-bond-ionic", title: "Bonding 1 · Ionic Bonding", paper: "MCQ", src: ["u2"] },
+  { id: "preib-bond-cov", title: "Bonding 2 · Covalent Bonds, Lewis & Shapes", paper: "MCQ", src: ["u2"] },
+  { id: "preib-bond-imf", title: "Bonding 3 · Polarity & Intermolecular Forces", paper: "MCQ", src: ["u2"] },
+  { id: "preib-bond-metal", title: "Bonding 4 · Metallic Bonding & Alloys", paper: "MCQ", src: ["u2"] },
+  { id: "preib-bond-mixed", title: "Bonding 5 · Mixed & Extension", paper: "MCQ", src: ["u2"] },
+  { id: "preib-frq-polarity", title: "Chemical Bonding · Molecular Polarity (VSEPR & Polarity)", paper: "FRQ", n: 10 },
+  { id: "preib-frq-ionic", title: "Bonding Practice Qs · Ionic Model (Cambridge Ch. 6)", paper: "FRQ", n: 4, cam: true },
+  { id: "preib-frq-lewis", title: "Bonding Practice Qs · Covalent Bonds & Lewis (Cambridge Ch. 7 §7.1)", paper: "FRQ", n: 3, cam: true },
+  { id: "preib-frq-shapes", title: "Bonding Practice Qs · Shapes & Polarity (Cambridge Ch. 7 §7.2–7.6)", paper: "FRQ", n: 3, cam: true },
+  { id: "preib-frq-imf", title: "Bonding Practice Qs · Intermolecular Forces & Properties (Cambridge Ch. 7 §7.7–7.10)", paper: "FRQ", n: 4, cam: true },
+  { id: "preib-frq-metal", title: "Bonding Practice Qs · Metals, Alloys & Polymers (Cambridge Ch. 8–9)", paper: "FRQ", n: 6, cam: true }
 ];
 /* Interactive self-study courses (COURSES in app.js must use the same ids). */
 const COURSES_TEACHER = [
-  { id: "course:tl-s32", title: "S3.2 Organic Chemistry — Structure (interactive course)" }
+  { id: "course:tl-s32", title: "S3.2 Organic Chemistry — Structure (interactive course)" },
+  { id: "course:tl-s2bond", title: "S2 Chemical Bonding — Pre-IB (interactive course)" }
 ];
 function allQuizzes() {
   const pre = PREIB_TEACHER.map(p => ({

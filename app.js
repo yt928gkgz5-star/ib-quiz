@@ -61,11 +61,24 @@ if (ENTRY) {
 }
 
 /* ---------- Pre-IB topics (merged from the SL MCQ bank) ---------- */
+/* Chemical Bonding (old CH4 / new Unit 2) is split by bonding type; `pick` keeps only the
+   listed question srcs so every one of the 82 questions appears exactly once.
+   preib-bonding (all 82) is retired: it stays resolvable for students' saved history. */
+const BOND_IONIC = ["11_SL_Summer_2018_Q7", "10_SL_Winter_2019_Q9", "11_SL_Summer_2021_Q10", "11_SL_Summer_2021_Q11", "12_SL_Summer_2021_Q11", "10_SL_Winter_2021_Q10", "10_SL_Winter_2021_Q11", "11_SL_Summer_2022_Q9", "11_SL_Summer_2022_Q10", "12_SL_Summer_2022_Q11", "11_SL_Summer_2023_Q9", "11_SL_Summer_2023_Q10", "11_SL_Winter_2023_Q10", "11_SL_Summer_2024_Q9"];
+const BOND_COVALENT = ["12_SL_Summer_2017_Q9", "11_SL_Summer_2017_Q11", "12_SL_Summer_2017_Q11", "10_SL_Winter_2017_Q10", "11_SL_Summer_2018_Q10", "12_SL_Summer_2018_Q10", "11_SL_Summer_2018_Q11", "12_SL_Summer_2018_Q11", "10_SL_Winter_2018_Q9", "10_SL_Winter_2018_Q10", "10_SL_Winter_2019_Q10", "10_SL_Winter_2019_Q12", "10_SL_Winter_2020_Q11", "11_SL_Summer_2021_Q9", "12_SL_Summer_2021_Q10", "11_SL_Summer_2021_Q12", "10_SL_Winter_2021_Q9", "12_SL_Summer_2022_Q9", "10_SL_Winter_2022_Q13", "12_SL_Summer_2023_Q10", "12_SL_Summer_2023_Q11", "11_SL_Summer_2023_Q12", "12_SL_Summer_2023_Q12", "11_SL_Summer_2023_Q13", "11_SL_Winter_2023_Q12", "12_SL_Summer_2024_Q9", "12_SL_Summer_2024_Q10", "11_SL_Summer_2024_Q12", "1_SL_Winter_2024_Q9", "1_SL_Winter_2024_Q11"];
+const BOND_IMF = ["11_SL_Summer_2017_Q10", "12_SL_Summer_2017_Q10", "11_SL_Summer_2017_Q12", "10_SL_Winter_2017_Q9", "10_SL_Winter_2017_Q11", "11_SL_Summer_2018_Q12", "12_SL_Summer_2018_Q12", "10_SL_Winter_2018_Q11", "10_SL_Winter_2018_Q12", "10_SL_Winter_2020_Q10", "12_SL_Summer_2021_Q12", "10_SL_Winter_2021_Q12", "10_SL_Winter_2021_Q13", "11_SL_Summer_2022_Q11", "12_SL_Summer_2022_Q12", "10_SL_Winter_2022_Q10", "10_SL_Winter_2022_Q11", "12_SL_Summer_2023_Q9", "11_SL_Summer_2024_Q10", "12_SL_Summer_2024_Q12", "1_SL_Winter_2024_Q10"];
+const BOND_METAL = ["12_SL_Summer_2017_Q12", "10_SL_Winter_2017_Q12", "10_SL_Winter_2020_Q12", "10_SL_Winter_2022_Q12", "12_SL_Summer_2024_Q11", "1_SL_Winter_2024_Q12"];
+const BOND_MIXED = ["11_SL_Summer_2017_Q9", "10_SL_Winter_2017_Q8", "10_SL_Winter_2019_Q11", "12_SL_Summer_2021_Q9", "12_SL_Summer_2022_Q10", "11_SL_Summer_2022_Q12", "10_SL_Winter_2022_Q9", "11_SL_Summer_2023_Q8", "11_SL_Winter_2023_Q11", "11_SL_Winter_2023_Q13", "11_SL_Summer_2024_Q11"];
 const PREIB_TOPICS = [
   { id: "preib-stoich",   title: "Stoichiometry",     src: ["u1b"] },
   { id: "preib-atoms",    title: "Atomic Structure",  src: ["u1a"] },
   { id: "preib-periodic", title: "Periodic Trends",   src: ["u3"] },
-  { id: "preib-bonding",  title: "Chemical Bonding",  src: ["u2"] }
+  { id: "preib-bond-ionic", title: "Bonding 1 · Ionic Bonding",            src: ["u2"], pick: BOND_IONIC },
+  { id: "preib-bond-cov",   title: "Bonding 2 · Covalent Bonds, Lewis & Shapes", src: ["u2"], pick: BOND_COVALENT },
+  { id: "preib-bond-imf",   title: "Bonding 3 · Polarity & Intermolecular Forces", src: ["u2"], pick: BOND_IMF },
+  { id: "preib-bond-metal", title: "Bonding 4 · Metallic Bonding & Alloys", src: ["u2"], pick: BOND_METAL },
+  { id: "preib-bond-mixed", title: "Bonding 5 · Mixed & Extension",         src: ["u2"], pick: BOND_MIXED },
+  { id: "preib-bonding",  title: "Chemical Bonding · all 82 questions", src: ["u2"], retired: true }
 ];
 const PREIB_CH = PREIB_TOPICS.map(t => ({
   id: t.id,
@@ -74,11 +87,34 @@ const PREIB_CH = PREIB_TOPICS.map(t => ({
   level2: "SL",
   paper: "MCQ",
   _src: t.src,
+  retired: !!t.retired,
   questions: t.src.flatMap(cid => {
     const c = QUIZ_DATA.chapters.find(x => x.id === cid);
-    return c ? c.questions : [];
+    if (!c) return [];
+    return t.pick ? c.questions.filter(q => t.pick.indexOf(q.src) > -1) : c.questions;
   })
 }));
+
+/* ---------- Pre-IB interactive lessons (Cambridge S2 course) ---------- */
+const PREIB_LESSONS = [
+  { part: "2.1",  title: "The Ionic Model", codes: "S2.1 · Cambridge Ch. 6" },
+  { part: "2.2A", title: "Covalent Bonds & Lewis Formulas", codes: "S2.2 · Ch. 7 §7.1" },
+  { part: "2.2B", title: "Molecular Shapes & Polarity (VSEPR)", codes: "S2.2 · Ch. 7 §7.2–7.6" },
+  { part: "2.2C", title: "Intermolecular Forces & Physical Properties", codes: "S2.2 · Ch. 7 §7.7–7.10" },
+  { part: "2.3",  title: "The Metallic Model", codes: "S2.3 · Ch. 8" },
+  { part: "2.4",  title: "From Models to Materials", codes: "S2.4 · Ch. 9" }
+];
+function preibLessonsHTML() {
+  return `<div class="sublabel" style="margin-top:14px">S2 Chemical Bonding — interactive lessons (Cambridge Ch. 6–9, inquiry-based)</div>
+  <div class="chapter lessoncard" onclick="location.href='topical-learning/s2-bonding/index.html#home'">
+    <div class="chapter-main"><div class="chapter-no small">LEARN</div>
+      <div><h3>Chemical Bonding — interactive course</h3>
+        <div class="meta">Explore models · worked examples · checkpoint quizzes · progress saved on your device</div></div>
+    </div><div class="badge">Open</div></div>
+  <details class="codesmall" style="margin-top:6px"><summary>Jump straight to a part</summary>
+    <div class="lessonlist">${PREIB_LESSONS.map(l =>
+      `<a class="lessonlink" href="topical-learning/s2-bonding/index.html#${l.part}">Part ${l.part} · ${l.title} <span class="meta">(${l.codes})</span></a>`).join("")}</div></details>`;
+}
 
 /* ---------- Pre-IB FRQ sets (auto-marked by keyword rubrics) ---------- */
 const FRQ_INSTRUCTIONS = `<b>For each molecule, answer all seven parts:</b>
@@ -212,7 +248,62 @@ const PREIB_FRQ_SETS = [
     ]
   }
 ];
-const PREIB_FRQ_CH = PREIB_FRQ_SETS;
+let PREIB_FRQ_CH = PREIB_FRQ_SETS;
+
+/* ---------- Pre-IB FRQ sets from the Cambridge coursebook (teacher-marked) ----------
+   The questions are the Cambridge "Test your understanding" sets of Structure 2 (Ch. 6–9, SL).
+   Students type answers and sketch structures; nothing is auto-marked here — each submission
+   goes to the cloud (kind frqT) and the teacher marks it and records grades on ManageBac. */
+const CAM_INTRO = `<b>Cambridge practice questions — marked by your teacher.</b>
+  <ol class="frqol">
+    <li>The questions themselves are shown as images from the coursebook (Structure 2, chapters 6–9).</li>
+    <li>Type your answers in the boxes; for "draw" parts, use the sketch pad (finger / Apple Pencil / mouse both work).</li>
+    <li>Marks for each question are shown in brackets. Submit when finished — you will get your mark from your teacher, not from the site.</li>
+    <li>Your typed answers and sketches are saved automatically as you go.</li>
+  </ol>`;
+const PREIB_CAM_FRQ_SETS = [
+  { id: "preib-frq-ionic", title: "Bonding Practice Qs · Ionic Model (Cambridge Ch. 6)", level: "Pre-IB", level2: "SL", paper: "FRQ",
+    marking: "teacher", _src: ["preib-frq"], intro: CAM_INTRO,
+    questions: [
+      { marks: 6, img: "img/preib-frq/A1.jpg", sketch: false, prompt: "Q1 · For each compound, state whether the bonding is ionic or covalent (1 mark each)." },
+      { marks: 16, img: "img/preib-frq/A2.jpg", sketch: true, prompt: "Q2 · Write the formula of each compound (1 mark each). Sketch any you prefer to draw." },
+      { marks: 5, img: "img/preib-frq/A3.jpg", sketch: false, prompt: "Q3 · True or false for each statement (a–e), with the correction for any false statement." },
+      { marks: 5, img: "img/preib-frq/A4.jpg", sketch: false, prompt: "Q4 · Arrange in order of increasing lattice enthalpy (smallest first) and justify in one sentence." }
+    ] },
+  { id: "preib-frq-lewis", title: "Bonding Practice Qs · Covalent Bonds & Lewis (Cambridge Ch. 7 §7.1)", level: "Pre-IB", level2: "SL", paper: "FRQ",
+    marking: "teacher", _src: ["preib-frq"], intro: CAM_INTRO,
+    questions: [
+      { marks: 11, img: "img/preib-frq/B1.jpg", sketch: true, prompt: "Q1 · Work out the Lewis formula of each species (a–k). Use the sketch pad — dot-and-cross or lines both accepted." },
+      { marks: 3, img: "img/preib-frq/B2.jpg", sketch: false, prompt: "Q2–4 · Shortest / longest bond length questions — name the species and justify with bond order." },
+      { marks: 25, img: "img/preib-frq/B3.jpg", sketch: true, prompt: "Q5–8 · Coordination bonds, incomplete octets, lone-pair counts, and Lewis formulas of the nitrogen species (draw the formulas)." }
+    ] },
+  { id: "preib-frq-shapes", title: "Bonding Practice Qs · Shapes & Polarity (Cambridge Ch. 7 §7.2–7.6)", level: "Pre-IB", level2: "SL", paper: "FRQ",
+    marking: "teacher", _src: ["preib-frq"], intro: CAM_INTRO,
+    questions: [
+      { marks: 24, img: "img/preib-frq/C1.jpg", sketch: true, prompt: "Q9 · Shape AND bond angle for each molecule/ion (a–l): 1 mark for the shape, 1 for the angle. Draw the 3-D shape (wedge–dash) for any two." },
+      { marks: 15, img: "img/preib-frq/C2.jpg", sketch: true, prompt: "Q10–11 · Smaller H–X–H angles (a–g) and the trigonal-planar domain species." },
+      { marks: 12, img: "img/preib-frq/C3.jpg", sketch: true, prompt: "Q12–13 · Electronegativity order, then polar molecules with their dipoles drawn (use the sketch pad)." }
+    ] },
+  { id: "preib-frq-imf", title: "Bonding Practice Qs · Intermolecular Forces & Properties (Cambridge Ch. 7 §7.7–7.10)", level: "Pre-IB", level2: "SL", paper: "FRQ",
+    marking: "teacher", _src: ["preib-frq"], intro: CAM_INTRO,
+    questions: [
+      { marks: 13, img: "img/preib-frq/D1.jpg", sketch: true, prompt: "Q14–16 · Higher boiling point in each pair (justify), the hydrogen-bonding diagram (draw it), and which molecules hydrogen-bond." },
+      { marks: 7, img: "img/preib-frq/D2.jpg", sketch: false, prompt: "Q17 · Arrange each set in order of increasing boiling point (a–g), lowest first." },
+      { marks: 9, img: "img/preib-frq/D3.jpg", sketch: false, prompt: "Q18–20 · Solubility comparisons and the TLC/Rf calculations." },
+      { marks: 6, img: "img/preib-frq/D4.jpg", sketch: false, prompt: "Q21–22 · Boiling point and solubility orders across structure types." }
+    ] },
+  { id: "preib-frq-metal", title: "Bonding Practice Qs · Metals, Alloys & Polymers (Cambridge Ch. 8–9)", level: "Pre-IB", level2: "SL", paper: "FRQ",
+    marking: "teacher", _src: ["preib-frq"], intro: CAM_INTRO,
+    questions: [
+      { marks: 8, img: "img/preib-frq/E1.jpg", sketch: false, prompt: "Ch. 8 Q1–2 · True/false on metallic bonding and the melting-point orders." },
+      { marks: 3, img: "img/preib-frq/E2.jpg", sketch: false, prompt: "Ch. 8 Q3 · True/false on transition metals." },
+      { marks: 6, img: "img/preib-frq/E3.jpg", sketch: false, prompt: "Ch. 9 Q1 · Place each substance in the bonding triangle (state Δχ and the average χ you used)." },
+      { marks: 3, img: "img/preib-frq/E4.jpg", sketch: false, prompt: "Ch. 9 Q2 · True/false on alloys." },
+      { marks: 5, img: "img/preib-frq/E5.jpg", sketch: false, prompt: "Ch. 9 Q3–4 · Plastics: state and explain; then which of plastics A and B is denser / more flexible." },
+      { marks: 8, img: "img/preib-frq/E6.jpg", sketch: true, prompt: "Ch. 9 Q5–6 · Draw the repeating units (a–e) and the monomers (a, b) — use the sketch pad." }
+    ] }
+];
+PREIB_FRQ_CH = PREIB_FRQ_SETS.concat(PREIB_CAM_FRQ_SETS);
 
 /* ---------- FRQ auto-marking ---------- */
 function normAns(t) { return String(t || "").toLowerCase().replace(/[\u2018\u2019]/g, "'"); }
@@ -228,7 +319,8 @@ function gradeFRQ(q, ans) {
 
 function activeChapters() {
   if (state.browse.level !== "Pre-IB") return QUIZ_DATA.chapters;
-  return state.browse.paper === "FRQ" ? PREIB_FRQ_CH : PREIB_CH;
+  const list = state.browse.paper === "FRQ" ? PREIB_FRQ_CH : PREIB_CH;
+  return list.filter(c => !c.retired);
 }
 
 /* ---------- cloud reporting (Tencent CloudBase, optional) ---------- */
@@ -503,7 +595,7 @@ function reviewFromHistory(el) {
   const ch = findChapter(r.ch);
   if (!ch) { alert("This quiz is no longer available."); return; }
   if (!isAllowed(ch)) { alert("This quiz is not unlocked by the access code on this device."); return; }
-  const kind = ch.paper === "FRQ" ? "frq" : isStructPaper(ch.paper) ? "p2" : "mcq";
+  const kind = ch.paper === "FRQ" ? (ch.marking === "teacher" ? "frqT" : "frq") : isStructPaper(ch.paper) ? "p2" : "mcq";
   let saved = null;
   try { saved = r.data ? JSON.parse(r.data) : null; } catch (e) {}
   if (!saved && kind === "mcq") {                   // rows written before full answers were stored
@@ -517,8 +609,8 @@ function reviewFromHistory(el) {
   const idx = activeChapters().indexOf(ch);
   if (idx < 0) { alert("This quiz could not be opened."); return; }
   state = Object.assign({}, state, { view: "quiz", chapter: idx, name: session().name, answers: saved.answers || {},
-    marks: saved.marks || {}, frqResults: saved.results || null, page: 0, submitted: true, marking: false,
-    reviewDate: r.date || "", reviewOnly: true });
+    marks: saved.marks || {}, sketches: saved.sketches || {}, frqResults: saved.results || null, page: 0, submitted: true, marking: false,
+    reviewDate: r.date || "", reviewOnly: true, teacherMarking: kind === "frqT" });
   render(); window.scrollTo(0, 0);
 }
 
@@ -673,7 +765,10 @@ function lockedClick() {
 const COURSES = [
   { id: "tl-s32", rule: "course:tl-s32", path: "topical-learning/s32-organic-structure/index.html",
     tag: "S3.2", title: "Organic Chemistry — Structure",
-    meta: "Self-study course · Cambridge Ch.11 backbone · 5 modules · 30 worked examples, practice sets, 42 checkpoint questions · Apple Pencil sketching" }
+    meta: "Self-study course · Cambridge Ch.11 backbone · 5 modules · 30 worked examples, practice sets, 42 checkpoint questions · Apple Pencil sketching" },
+  { id: "tl-s2bond", rule: "course:tl-s2bond", path: "topical-learning/s2-bonding/index.html",
+    tag: "S2", title: "Chemical Bonding (Pre-IB)",
+    meta: "Self-study course · Cambridge Ch.6–9 (SL) backbone · 6 parts · 13 interactive models, worked examples, checkpoint quizzes · Apple Pencil sketching" }
 ];
 function courseAllowed(c) {
   if (assignedIds.has(c.rule)) return true;                    // the class was given the course as a task
@@ -775,7 +870,7 @@ function renderHome() {
     ? `<div class="authbar"><button class="btn-auth light" onclick="openAccount()">My history</button><button class="btn-auth light" onclick="signOut()">Sign out</button></div>`
     : `<div class="authbar"><button class="btn-auth" onclick="openAccount()">Sign in</button></div>`;
 
-  const cards = group.map(x => {
+  const cards = group.filter(x => !x.ch.retired).map(x => {
     const ch = x.ch, i = x.i;
     const a = chapterStats(ch);
     const allowed = isAllowed(ch);
@@ -851,6 +946,7 @@ function renderHome() {
     <div class="lvlrow">${levelTabs}</div>
     <div class="tabs">${paperTabs}</div>
     ${accBar}
+    ${level === "Pre-IB" && paper === "MCQ" ? preibLessonsHTML() : ""}
     <div class="listhead">${heading}${hasBank ? ` · ${total} questions` : ""}</div>
     ${cards}${emptyCard}
     <div class="footnote">Every question keeps its original diagram or structure, so figures stay exact. Your score is shown immediately after submission, with the correct answer for each question.${ENTRY ? "" : `<br><a class="tlink" href="teacher.html">Teacher view</a>`}</div>
@@ -871,10 +967,21 @@ function setPaper(p) { if (ENTRY && ENTRY.papers.indexOf(p) === -1) return; stat
 function openChapter(i) {
   const ch = activeChapters()[i];
   if (!isAllowed(ch)) { lockedClick(); return; }
-  state = { view: "quiz", chapter: i, name: localStorage.getItem("stuName") || "", answers: {}, marks: {}, page: 0, submitted: false, marking: false,
-    browse: state.browse, frqResults: null, reviewDate: null };
+  state = { view: "quiz", chapter: i, name: localStorage.getItem("stuName") || "", answers: {}, marks: {}, sketches: {}, page: 0, submitted: false, marking: false,
+    browse: state.browse, frqResults: null, reviewDate: null, teacherMarking: ch.paper === "FRQ" && ch.marking === "teacher" };
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem("attempt:" + ch.id) || "null"); } catch (e) {}
+  if (ch.paper === "FRQ" && ch.marking === "teacher" && saved && saved.kind === "frqT") {
+    state.answers = saved.answers || {};
+    state.sketches = saved.sketches || {};
+    state.submitted = true;
+    state.reviewDate = saved.date || "";
+  }
+  if (ch.paper === "FRQ" && ch.marking === "teacher" && !state.submitted) {
+    let draft = null;
+    try { draft = JSON.parse(localStorage.getItem("draft:" + ch.id) || "null"); } catch (e) {}
+    if (draft) { state.answers = draft.answers || {}; state.sketches = draft.sketches || {}; }
+  }
   if (ch.paper === "FRQ" && saved && saved.kind === "frq") {
     state.answers = saved.answers || {};
     state.frqResults = saved.results || ch.questions.map((q, qi) => gradeFRQ(q, state.answers[qi]));
@@ -892,7 +999,7 @@ function openChapter(i) {
 
 function reviewAttempt() { state.view = "quiz"; render(); window.scrollTo(0, 0); }
 function startFresh() {
-  state.answers = {}; state.marks = {}; state.frqResults = null; state.submitted = false; state.marking = false; state.reviewDate = null; state.reviewOnly = false; state.page = 0;
+  state.answers = {}; state.marks = {}; state.sketches = {}; state.frqResults = null; state.submitted = false; state.marking = false; state.reviewDate = null; state.reviewOnly = false; state.page = 0;
   render(); window.scrollTo(0, 0);
 }
 
@@ -929,11 +1036,37 @@ function p2QuestionHTML(q, qi) {
 }
 
 function frqQuestionHTML(q, qi) {
+  const teacher = state.teacherMarking;
   if (!state.submitted) {
+    const sk = teacher && q.sketch
+      ? `<div class="sketchwrap"><div class="skethtools">
+           <button class="scol on" data-c="#0E2A47" style="background:#0E2A47"></button>
+           <button class="scol" data-c="#C0392B" style="background:#C0392B"></button>
+           <button class="scol" data-c="#1F6FB2" style="background:#1F6FB2"></button>
+           <button class="sw on" data-w="2">thin</button><button class="sw" data-w="5">thick</button>
+           <button class="sera">eraser</button><button class="sclr">clear</button>
+         </div><canvas class="sketch" data-q="${qi}" height="240"></canvas></div>`
+      : "";
+    const qimg = teacher ? `<img class="qimg" src="${q.img}" alt="Question ${qi + 1}" loading="lazy">` : "";
     return `<article class="q frq">
       <div class="qtop"><span class="qidx">${qi + 1}</span><span class="qsrc">[${q.marks} marks]</span></div>
+      ${qimg}
       <div class="frqprompt">${q.prompt}</div>
       <textarea class="frqbox" data-q="${qi}" oninput="typeAns(this)" placeholder="Type your answer here...">${escHTML(state.answers[qi] || "")}</textarea>
+      ${sk}
+    </article>`;
+  }
+  if (teacher) {
+    const given = String(state.answers[qi] || "").trim();
+    const sk = state.sketches && state.sketches[qi] ? `<div class="frqgiven"><div class="frqlabel">Your sketch</div><img class="sketchimg" src="${state.sketches[qi]}"></div>` : "";
+    return `<article class="q frq graded">
+      <div class="qtop"><span class="qidx">${qi + 1}</span><span class="qsrc">[${q.marks} marks]</span></div>
+      <img class="qimg" src="${q.img}" alt="Question ${qi + 1}" loading="lazy">
+      <div class="frqprompt">${q.prompt}</div>
+      <div class="frqgiven"><div class="frqlabel">Your typed answer</div>
+        <div class="frqtext${given ? "" : " empty"}">${given ? escHTML(given).replace(/\n/g, "<br>") : "<i>No typed answer</i>"}</div></div>
+      ${sk}
+      <div class="frqscore submitted">Submitted — your teacher marks this set</div>
     </article>`;
   }
   const res = (state.frqResults && state.frqResults[qi]) || { points: q.rubric.map(r => ({ d: r.d, ok: false })), s: 0 };
@@ -1001,6 +1134,11 @@ function renderQuiz() {
   const reviewBar = state.submitted && state.reviewDate
     ? `<div class="reviewbar">Reviewing your attempt from <b>${state.reviewDate}</b> · <a class="tlink" onclick="startFresh()">start a fresh attempt</a></div>` : "";
   const introBar = isFRQ && !state.submitted ? `<div class="q frqintro">${ch.intro || ""}</div>` : "";
+  const teacherNote = isFRQ && ch.marking === "teacher"
+    ? `<div class="reviewbar" style="background:#EEF4FB;border-color:#B9CFE8">${state.submitted
+        ? "Submitted. Your teacher will mark this set and record the grade on ManageBac — check with them for your mark."
+        : "This set is <b>marked by your teacher</b> (not the website). Type your answers, sketch the 'draw' parts, then submit."}</div>`
+    : "";
   const p2bar = isP2 && state.marking && !state.submitted
     ? `<div class="reviewbar" style="background:#EAF3EA;border-color:#BBD8BB">Compare your answer with the <b>official mark scheme</b> under each question, then enter the mark you earned (and the question total) in the boxes. When every question is marked, click <b>Save my marks</b>.</div>` : "";
 
@@ -1008,7 +1146,7 @@ function renderQuiz() {
   <header class="site small"><div class="inner">
     <div class="back" onclick="goHome()">← ${isPastPaperLevel(ch.level2) ? "All sets" : "All chapters"}</div>
     <h1>${ch.title}</h1>
-    <p>${isFRQ ? total + " free-response questions · auto-marked" : isP2 ? total + " structured questions · mark-scheme self-marking" : total + " questions"} · ${ch.level}</p>
+    <p>${isFRQ ? (ch.marking === "teacher" ? total + " Cambridge practice questions · marked by your teacher" : total + " free-response questions · auto-marked") : isP2 ? total + " structured questions · mark-scheme self-marking" : total + " questions"} · ${ch.level}</p>
   </div></header>
   <main class="wrap">
     ${state.submitted ? "" : `<div class="namebar">
@@ -1019,6 +1157,7 @@ function renderQuiz() {
     <div class="progress"><div class="progress-bar"><i id="progBar" style="width:${Math.round(100 * answered / total)}%"></i></div>
       <span id="progText">${answered} / ${total} answered</span></div>
     ${introBar}
+    ${teacherNote}
     ${p2bar}
     ${qs}
     ${pager}
@@ -1035,6 +1174,7 @@ function renderQuiz() {
         ? "Answer the questions (type key results here, or work on paper). After submitting, the official mark scheme appears under each question so you can mark yourself, just like an examiner would."
         : "Answer as many as you can, then submit. Correct answers appear with each question."}</div>`}
   </main>`;
+  if (isFRQ && ch.marking === "teacher") initSketchPads();
 }
 
 /* ---------- class roster (from access code) ---------- */
@@ -1099,6 +1239,7 @@ function goPage(p) {
 function typeAns(ta) {
   if (state.submitted) return;
   state.answers[ta.dataset.q] = ta.value;
+  saveDraft();
   const ch = activeChapters()[state.chapter];
   const total = ch.questions.length;
   const answered = ch.questions.filter((q, qi) => String(state.answers[qi] || "").trim()).length;
@@ -1128,10 +1269,70 @@ async function submitQuiz() {
     : Object.keys(state.answers).length;
   const unanswered = total - answered;
   if (unanswered > 0 && !confirm(unanswered + " question(s) still unanswered. Submit anyway?")) return;
-  if (isFRQ) state.frqResults = ch.questions.map((q, qi) => gradeFRQ(q, state.answers[qi]));
+  if (isFRQ && ch.marking !== "teacher") state.frqResults = ch.questions.map((q, qi) => gradeFRQ(q, state.answers[qi]));
   if (isP2) { state.marking = true; render(); window.scrollTo(0, 0); return; }
   state.submitted = true;
   render(); window.scrollTo(0, 0);
+}
+
+/* ---------- sketch pads for teacher-marked FRQ sets ---------- */
+function initSketchPads() {
+  document.querySelectorAll("canvas.sketch").forEach(cv => {
+    if (cv._padReady) return;
+    cv._padReady = true;
+    const ctx = cv.getContext("2d");
+    if (!ctx) return;
+    cv.width = Math.round((cv.clientWidth || 700));
+    cv.height = 240;
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, cv.width, cv.height);
+    const qi = +cv.dataset.q;
+    const saved = state.sketches && state.sketches[qi];
+    if (saved) { const im = new Image(); im.onload = () => ctx.drawImage(im, 0, 0, cv.width, cv.height); im.src = saved; }
+    let color = "#0E2A47", width = 3, eraser = false, drawing = false, last = null;
+    const wrap = cv.closest(".sketchwrap");
+    wrap.querySelectorAll(".scol").forEach(b => b.onclick = () => {
+      wrap.querySelectorAll(".scol").forEach(x => x.classList.remove("on"));
+      b.classList.add("on"); color = b.dataset.c; eraser = false;
+      const er = wrap.querySelector(".sera"); if (er) er.classList.remove("on");
+    });
+    wrap.querySelectorAll(".sw").forEach(b => b.onclick = () => {
+      wrap.querySelectorAll(".sw").forEach(x => x.classList.remove("on"));
+      b.classList.add("on"); width = +b.dataset.w;
+    });
+    wrap.querySelector(".sera").onclick = e => { eraser = !eraser; e.target.classList.toggle("on", eraser); };
+    wrap.querySelector(".sclr").onclick = () => { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, cv.width, cv.height); state.sketches = state.sketches || {}; delete state.sketches[qi]; saveDraft(); };
+    function pt(e) { const r = cv.getBoundingClientRect(); const k = cv.width / r.width; return { x: (e.clientX - r.left) * k, y: (e.clientY - r.top) * k }; }
+    function stroke(a, b) {
+      ctx.globalCompositeOperation = eraser ? "destination-out" : "source-over";
+      ctx.strokeStyle = eraser ? "rgba(0,0,0,1)" : color;
+      ctx.lineWidth = width * (eraser ? 8 : 1); ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    }
+    cv.addEventListener("pointerdown", e => { drawing = true; try { cv.setPointerCapture(e.pointerId); } catch (err) {} last = pt(e); stroke(last, { x: last.x + 0.1, y: last.y }); });
+    cv.addEventListener("pointermove", e => { if (!drawing) return; const p = pt(e); stroke(last, p); last = p; });
+    const stop = () => {
+      if (!drawing) return;
+      drawing = false;
+      try {
+        state.sketches = state.sketches || {};
+        state.sketches[qi] = cv.toDataURL("image/jpeg", 0.55);
+        saveDraft();
+      } catch (err) {}
+    };
+    cv.addEventListener("pointerup", stop);
+    cv.addEventListener("pointercancel", stop);
+  });
+}
+
+/* draft autosave for FRQ sets (typed answers + sketches), restored on reopen */
+function saveDraft() {
+  const ch = activeChapters()[state.chapter];
+  if (!ch || ch.paper !== "FRQ" || state.submitted) return;
+  try {
+    localStorage.setItem("draft:" + ch.id, JSON.stringify({
+      answers: state.answers, sketches: state.sketches || {}, date: nowStamp()
+    }));
+  } catch (e) { /* storage full — keep going without drafts */ }
 }
 
 function markInput(el) {
@@ -1165,6 +1366,9 @@ function saveMarks() {
 
 function score() {
   const ch = activeChapters()[state.chapter];
+  if (ch.paper === "FRQ" && ch.marking === "teacher") {
+    return { s: 0, t: ch.questions.reduce((a, q) => a + (q.marks || 0), 0) };
+  }
   if (ch.paper === "FRQ") {
     const s = (state.frqResults || []).reduce((a, r) => a + r.s, 0);
     const t = ch.questions.reduce((a, q) => a + (q.marks || 0), 0);
@@ -1190,7 +1394,12 @@ function finish() {
   const { s, t } = score();
   if (!t) { alert("No marks recorded yet."); return; }
   const pct = Math.round(100 * s / t);
+  const isTeacher = isFRQ && ch.marking === "teacher";
   const grid = ch.questions.map((q, qi) => {
+    if (isTeacher) {
+      const has = String(state.answers[qi] || "").trim() || (state.sketches && state.sketches[qi]);
+      return `<span class="cell half" title="Q${qi + 1}: submitted for marking">${qi + 1}</span>${has ? "" : ""}`;
+    }
     if (isFRQ) {
       const r = (state.frqResults && state.frqResults[qi]) || { s: 0 };
       return `<span class="cell ${r.s === q.marks ? "ok" : r.s === 0 ? "no" : "half"}" title="Q${qi + 1}: ${r.s}/${q.marks}">${qi + 1}</span>`;
@@ -1206,7 +1415,9 @@ function finish() {
   }).join("");
   const payload = {
     n: state.name, c: ch.title, s: `${s}/${t}`,
-    a: isFRQ
+    a: isTeacher
+      ? ch.questions.map((q, qi) => (String(state.answers[qi] || "").trim() || (state.sketches && state.sketches[qi])) ? "1" : "0").join("-")
+      : isFRQ
       ? ch.questions.map((q, qi) => ((state.frqResults && state.frqResults[qi]) || { s: 0 }).s).join("-")
       : isP2
         ? ch.questions.map((q, qi) => { const m = state.marks[qi]; return m ? m.g + "/" + m.t : "0/0"; }).join("-")
@@ -1214,13 +1425,16 @@ function finish() {
     d: nowStamp()
   };
   const code = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-  const saved = isFRQ
+  const saved = isTeacher
+    ? { score: 0, total: t, date: payload.d, kind: "frqT", answers: state.answers, sketches: state.sketches || {} }
+    : isFRQ
     ? { score: s, total: t, date: payload.d, kind: "frq", answers: state.answers, results: state.frqResults }
     : isP2
       ? { score: s, total: t, date: payload.d, kind: "p2", answers: state.answers, marks: state.marks }
       : { score: s, total: t, date: payload.d, kind: "mcq", answers: state.answers };
   if (!state.reviewOnly) {                       // reviewing an old attempt must not overwrite or re-send it
     localStorage.setItem("attempt:" + ch.id, JSON.stringify(saved));
+    localStorage.removeItem("draft:" + ch.id);
     ownedIds.add(ch.id);
     cloudReportAsync({
       n: payload.n, cls: currentClass(), ch: ch.id, title: ch.title,
@@ -1237,11 +1451,15 @@ function finish() {
   </div></header>
   <main class="wrap">
     <section class="card result">
-      <div class="scoreline"><span class="score">${s}</span><span class="oft">/ ${t}</span><span class="pct">${pct}%</span></div>
-      <div class="who">${state.name} · ${ch.title}</div>
-      <div class="progress-bar big"><i style="width:${pct}%"></i></div>
-      <div class="grid">${grid}</div>
-      <div class="legend"><span class="key ok"></span>${isFRQ || isP2 ? "full marks" : "correct"} <span class="key no"></span>${isFRQ || isP2 ? "no marks" : "incorrect"}</div>
+      ${isTeacher
+        ? `<div class="scoreline"><span class="score">✓</span><span class="oft">submitted</span></div>
+           <div class="who">${state.name} · ${ch.title}</div>
+           <p class="footnote">Your teacher marks these Cambridge questions and records the grade on ManageBac. (${t} marks across ${ch.questions.length} questions)</p>`
+        : `<div class="scoreline"><span class="score">${s}</span><span class="oft">/ ${t}</span><span class="pct">${pct}%</span></div>
+           <div class="who">${state.name} · ${ch.title}</div>
+           <div class="progress-bar big"><i style="width:${pct}%"></i></div>
+           <div class="grid">${grid}</div>
+           <div class="legend"><span class="key ok"></span>${isFRQ || isP2 ? "full marks" : "correct"} <span class="key no"></span>${isFRQ || isP2 ? "no marks" : "incorrect"}</div>`}
     </section>
     <section class="card">
       <div class="listhead">Score report for your teacher</div>
